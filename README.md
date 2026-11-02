@@ -12,7 +12,8 @@ memo. It is built to be financially correct, transparent and testable.
 | Phase | Scope | State |
 |---|---|---|
 | 1 | Product definition, financial spec, architecture ([docs/phase-1-plan.md](docs/phase-1-plan.md)) | Approved |
-| 2 | Financial calculation engine and tests ([docs/engine.md](docs/engine.md)) | Built; awaiting review |
+| 2 | Financial calculation engine and tests ([docs/engine.md](docs/engine.md)) | Approved |
+| 2.5 | Verification and readiness: [independent verification](docs/verification/independent-verification.md), [API contract](docs/api-contract.md), [limitations register](docs/limitations-register.md) | Complete |
 | 3+ | Data layer, API, UI, memo | Not started |
 
 ## The engine

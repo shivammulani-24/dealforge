@@ -92,7 +92,8 @@ UI show is computed here.
 
 ## 4. Test suite
 
-238 tests in `backend/tests/engine/`. Run them with:
+Tests live in `backend/tests/engine/`. The engine is also checked against an exact,
+independent re-computation: see [`verification/independent-verification.md`](verification/independent-verification.md). Run them with:
 
 ```bash
 cd backend && pip install -e ".[dev]" && pytest --cov
@@ -142,17 +143,15 @@ debt plug; accretion is exactly 0 at breakeven synergies; runs are deterministic
 symmetric tax on losses (2 failures), TV missing (1+g) (7), cash subtracted in the bridge (6), no
 treasury-stock buyback (6), and interest not tax-effected in M&A (6).
 
-## 5. Known limitations (MVP scope, documented rather than hidden)
+## 5. Known limitations
 
-- No NOL / tax-loss carry-forward asset (D-06): conservative for loss-makers.
-- Year-end discounting only. No mid-year convention and no stub periods (D-07).
-- Gordon growth is the only terminal method. The exit multiple is a cross-check, not an alternative TV.
-- Market value of debt must be supplied by the user. If book value is used, it is flagged.
-- P/E route in comps ignores convertibles in the per-share step (if-converted EPS, with the coupon
-  added back, is not modelled). A `PE_CONVERTIBLES_IGNORED` warning is raised.
-- Peer calendarisation is not implemented. Misaligned fiscal years are only flagged.
-- Accretion/dilution covers a single pro forma year. There is no purchase-price allocation, so no
-  goodwill or intangible amortisation. Advisory fees are treated as non-deductible in the Year-1 line.
-- RSUs are added in full: no vesting conditions, no anti-dilution test.
-- Options are assumed exercisable. There is no vesting split and no option-pricing (Black–Scholes) alternative.
-- Floating-point arithmetic: results agree with hand calculations to ~1e-9 relative, and display rounding hides the rest.
+These are tracked, with impact, mitigation and target, in
+[`limitations-register.md`](limitations-register.md). Entries are never deleted; resolved ones
+are marked `Resolved`.
+
+LIM-01 no NOL asset · LIM-02 year-end discounting, no stub · LIM-03 Gordon is the only TV method
+· LIM-04 debt at book proxy · LIM-05 P/E route ignores convertibles · LIM-06 no calendarisation ·
+LIM-07 single-year A/D, no PPA · LIM-08 advisory fees non-deductible · LIM-09 RSUs in full ·
+LIM-10 options all exercisable · LIM-11 float precision · LIM-12 no forecast-vs-history driver
+warning · LIM-13 missing D&A ≤ costs check · LIM-14 no trapped-cash adjustment · LIM-15 Hamada not
+wired to peer betas · LIM-16 financial institutions out of scope.
