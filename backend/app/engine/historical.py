@@ -297,6 +297,30 @@ def analyze_historicals(
         )
 
         # Consistency checks (warnings only, D-12)
+        # LIM-13: D&A is part of operating costs, so it cannot exceed COGS + OpEx (both are
+        # reported inclusive of embedded D&A). Missing inputs → the check is skipped and that
+        # is disclosed; it is never run against a zero.
+        da_inputs = {"da": p.da, "cogs": p.cogs, "opex": p.opex}
+        absent_da = [k for k, val in da_inputs.items() if val is None]
+        if absent_da:
+            issues.append(
+                info(
+                    Code.DA_CHECK_SKIPPED,
+                    f"{fy}: D&A vs COGS + OpEx check not performed; missing "
+                    f"{', '.join(absent_da)}.",
+                )
+            )
+        else:
+            assert p.da is not None and p.cogs is not None and p.opex is not None
+            if p.da > p.cogs + p.opex:
+                issues.append(
+                    warning(
+                        Code.DA_EXCEEDS_OPERATING_COSTS,
+                        f"{fy}: D&A {p.da:,.2f} exceeds COGS + OpEx {p.cogs + p.opex:,.2f}; "
+                        "D&A is a component of those costs, so a line item is probably "
+                        "misclassified or mis-scaled.",
+                    )
+                )
         if None not in (p.revenue, p.cogs, p.opex, p.ebit):
             assert p.revenue is not None and p.cogs is not None
             assert p.opex is not None and p.ebit is not None
