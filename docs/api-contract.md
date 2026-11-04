@@ -1,7 +1,7 @@
 # API contract: Pydantic schemas ↔ engine dataclasses (Phase 3 preparation)
 
-Status: **design, approved before Phase 3 implementation**. No API code exists yet. This document
-fixes the rules the Phase 3 API must follow so it can never quietly change a financial value.
+Status: **implemented in Phase 3** (`app/schemas/`, `app/api/`); contract tests in
+`backend/tests/api/test_contract.py`. See section 6 for what testing established.
 
 ## 1. Two layers, two jobs
 
@@ -29,7 +29,7 @@ class StrictModel(BaseModel):
 | Concern | Rule |
 |---|---|
 | **Missing stays missing** | Every engine field typed `float \| None` maps to a schema field that is *required but nullable*: `revenue: float \| None` **with no default**. An omitted key → 422 (`missing`). An explicit `null` → passed to the engine as `None` → the engine reports `MISSING_INPUT` or returns a `MISSING` metric. No schema field has a numeric default. Bridge claims (debt, NCI, leases, …) are required non-null numbers: the client must send `0` for "none". |
-| **Integers vs floats** | A JSON integer such as `2000` must be accepted for a `float` field: the conversion is lossless up to 2^53. Strings and booleans must be rejected. Pydantic's strict-mode behaviour for int → float is to be confirmed by contract test 3 when the schemas are written. If strict mode rejects integers, the fields use an explicit `StrictInt \| StrictFloat` type converted with `float()`. |
+| **Integers vs floats** | **Resolved (section 6).** Strict mode accepts a JSON integer for a `float` field (`2000` → `2000.0`). Integers above 2^53 are rejected (`int_not_exact`), because a float would silently round them. Strings, booleans, lists, NaN, ±Infinity and overflow (`1e400`) are rejected. |
 | **Units** | Every request carries `{"currency": "INR", "scale": "crores"}` at the top level. All monetary fields in that request are in that unit. The API never rescales. Converting units is an importer job (Phase 3 CSV) and is recorded in provenance. Responses repeat `currency` and `scale`. Rates are decimals (`0.25`), and the schema docs state "decimal, not percent". |
 | **Sign conventions (D-02)** | Magnitude fields are documented as "≥ 0 magnitude" in the OpenAPI description, but the check itself is the engine's `SIGN_CONVENTION` error, so the client gets the same code whichever entry point it uses. |
 | **Enums** | Accepted only as their exact string values (`"standardized"`, `"ltm"`, `"book"`), case-sensitive. |
@@ -103,3 +103,25 @@ Groundwork already in place (Phase 2): `tests/engine/test_contract_groundwork.py
 the engine's canonical JSON keeps every finite float exactly (shortest round-trip `repr`), keeps
 `None` as `null` (never `0`), and rejects NaN. These are the properties the API serialisation will
 rely on.
+
+## 6. Findings from implementing and testing the contract
+
+1. **Integers (the open question from Phase 2): resolved.** Pydantic v2 strict mode accepts a JSON
+   integer for a `float` field, and the value arrives as the identical float
+   (`test_3_integers_are_accepted_exactly` checks that the API result equals the engine result
+   computed with `1000.0`). An experiment showed one silent change: `9007199254740993` (2^53 + 1)
+   became `9007199254740992.0`. The `Num` type now rejects integers above 2^53 with
+   `int_not_exact` (`test_3_coercion_is_rejected`).
+2. **FastAPI validates bodies in Python mode, not JSON mode.** In strict Python mode, Pydantic rejects
+   every string for a `date` or `Enum` field, so ISO dates sent by clients failed. Switching those
+   fields to lax mode would also accept integers as Unix timestamps for dates. Instead, two narrow
+   types are used: `IsoDate` accepts exactly `YYYY-MM-DD` and `ExactEnum` accepts exactly an
+   enum's value, case-sensitive. Timestamps, `31/03/2025`, datetimes and `"BOOK"` are rejected
+   (`test_3_dates_and_types_are_exact`, `test_3_enum_values_are_case_sensitive`).
+3. **Null vs omitted.** An explicit `null` reaches the engine as `None` and comes back as a
+   `calculation` error `MISSING_INPUT` naming the field (tested for tax rate, cash, NCI, basic
+   shares and base NWC separately). An omitted key is a `validation` error `missing`. A planted
+   mapper bug that turned a null cash into `0.0` was caught by these tests.
+4. **No value drift.** For KA-DCF-02 and KA-DCF-03, `POST /calculate/dcf` returns JSON equal,
+   with exact float equality, to `run_dcf` called directly. Saved runs re-execute byte for byte
+   (`POST /runs/{id}/verify`).

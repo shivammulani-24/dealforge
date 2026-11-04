@@ -1,5 +1,8 @@
 # Phase 3 design: data infrastructure and API
 
+Status: **implemented.** API reference: run the server and open `/docs` (OpenAPI). End-to-end
+transcript: [`demo/phase-3-workflow-output.txt`](demo/phase-3-workflow-output.txt).
+
 Built on the approved Phase 1 architecture (section D) and the API contract
 ([`api-contract.md`](api-contract.md)). Decisions that refine or extend the plan are marked **[P3-xx]**.
 

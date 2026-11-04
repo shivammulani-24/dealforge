@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 from collections.abc import Iterator
 from pathlib import Path
 from typing import Any
@@ -15,36 +16,10 @@ from app.main import create_app
 SAMPLE = Path(__file__).resolve().parents[2] / "samples" / "ardent_precision_synthetic.csv"
 PASSWORD = "correct horse battery"
 
-# KA-DCF-03 assumptions (docs/verification/independent-verification.md)
-KA_DCF03_ASSUMPTIONS: list[dict[str, Any]] = [
-    *[
-        {"key": "revenue_growth", "year_index": t, "value": v, "rationale": "KA-DCF-03"}
-        for t, v in enumerate([0.08, 0.07, 0.06, 0.05, 0.04], start=1)
-    ],
-    *[
-        {"key": "ebitda_margin", "year_index": t, "value": v}
-        for t, v in enumerate([0.18, 0.185, 0.19, 0.195, 0.20], start=1)
-    ],
-    *[{"key": "da_pct_revenue", "year_index": t, "value": 0.04} for t in range(1, 6)],
-    *[
-        {"key": "capex_pct_revenue", "year_index": t, "value": v}
-        for t, v in enumerate([0.05, 0.05, 0.045, 0.045, 0.045], start=1)
-    ],
-    *[{"key": "nwc_pct_revenue", "year_index": t, "value": 0.15} for t in range(1, 6)],
-    {"key": "tax_rate", "year_index": None, "value": 0.25},
-    {"key": "terminal_growth", "year_index": None, "value": 0.025},
-    {"key": "risk_free_rate", "year_index": None, "value": 0.045},
-    {"key": "levered_beta", "year_index": None, "value": 1.1},
-    {"key": "equity_risk_premium", "year_index": None, "value": 0.055},
-    {"key": "pre_tax_cost_of_debt", "year_index": None, "value": 0.07},
-    {"key": "size_premium", "year_index": None, "value": 0.0},
-]
-KA_DCF03_SETTINGS = {
-    "market_data_date": "2025-04-30",
-    "share_price": 20.0,
-    "debt_value_basis": "book",
-    "include_leases_in_debt": True,
-}
+# KA-DCF-03 assumptions (docs/verification/independent-verification.md), shared with the demo
+_SCENARIO = json.loads((SAMPLE.parent / "ardent_base_scenario.json").read_text(encoding="utf-8"))
+KA_DCF03_ASSUMPTIONS: list[dict[str, Any]] = _SCENARIO["assumptions"]
+KA_DCF03_SETTINGS: dict[str, Any] = _SCENARIO["settings"]
 
 
 @pytest.fixture
