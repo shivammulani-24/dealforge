@@ -1,0 +1,62 @@
+Health: {'status': 'ok', 'engine_version': '0.1.0'}
+
+=== Step 0: Register and log in =========================================
+register: 201 (409 = already registered)
+token expires: 2026-11-05T04:17:53.155854Z
+
+=== Step 1: Create company ==============================================
+{
+  "id": 1,
+  "name": "Ardent Precision Components (SYNTHETIC)",
+  "sector": "Industrials",
+  "currency": "INR",
+  "scale": "crores",
+  "fiscal_year_end_month": 3,
+  "is_financial_institution": false,
+  "is_synthetic": true
+}
+
+=== Step 2: Validate the statements (dry run, nothing saved) ============
+file ardent_precision_synthetic.csv  sha256 9fa4a5fb4cf73e1e…  ok=True
+errors: 0   other issues: []
+fiscal years: [2023, 2024, 2025]
+A deliberately broken file is rejected with row/column errors:
+   row 3 FY2025: INVALID_NUMBER — 'abc' is not a number
+   row 4 FY2025: SIGN_CONVENTION — capex is a positive magnitude (D-02); got -3.
+
+=== Step 3: Import the statements (commit) ==============================
+committed fiscal years: [2023, 2024, 2025]
+FY2025 revenue = 2000.0 INR crores  provenance: CSV import: ardent_precision_synthetic.csv / ardent_precision_synthetic.csv: row 3, column FY2025 (raw text '2,000.0')
+   FY2023: growth None, EBITDA margin 0.1900, NWC 240.0
+   FY2024: growth 0.125, EBITDA margin 0.1950, NWC 270.0
+   FY2025: growth 0.11111111111111116, EBITDA margin 0.2000, NWC 300.0
+share instruments recorded: 5.0m options @ 12.00, 1.0m RSUs
+
+=== Step 4: Run DCF (preview, nothing saved) ============================
+WACC 9.599801%   EV 3,558.7907   equity 3,248.7907   value/share 31.2150
+warnings: ['MARKET_DATA_DATE_DIFFERS', 'DEBT_AT_BOOK', 'DILUTION_SOLVED']
+
+=== Step 5: Save the valuation run (frozen) =============================
+run 1  engine 0.1.0  sha256:37c66a5382d863399822cc79268966c803179e0fae0d36679fc0c867efcf8114
+
+=== Step 6: Retrieve the saved run ======================================
+retrieved value/share: 31.215006617818556
+result identical to the response at save time: True
+result identical to the preview: True
+
+=== Step 7: Verify identical results (re-execute the frozen inputs) =====
+{
+  "run_id": 1,
+  "identical": true,
+  "inputs_round_trip_exact": true,
+  "input_hash_matches": true,
+  "engine_version_at_run": "0.1.0",
+  "engine_version_now": "0.1.0",
+  "differing_paths": [],
+  "value_per_share": {
+    "stored": 31.215006617818556,
+    "recomputed": 31.215006617818556
+  }
+}
+
+RESULT: IDENTICAL — workflow verified

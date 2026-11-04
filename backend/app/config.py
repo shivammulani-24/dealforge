@@ -1,0 +1,19 @@
+"""Runtime settings, read from environment variables (no secrets in code)."""
+
+from __future__ import annotations
+
+import os
+from dataclasses import dataclass
+
+
+@dataclass(frozen=True)
+class Settings:
+    database_url: str
+    token_ttl_hours: int = 12
+
+    @classmethod
+    def from_env(cls) -> Settings:
+        return cls(
+            database_url=os.environ.get("DEALFORGE_DATABASE_URL", "sqlite:///./dealforge.sqlite3"),
+            token_ttl_hours=int(os.environ.get("DEALFORGE_TOKEN_TTL_HOURS", "12")),
+        )

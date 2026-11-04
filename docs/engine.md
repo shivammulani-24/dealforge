@@ -152,6 +152,7 @@ are marked `Resolved`.
 LIM-01 no NOL asset · LIM-02 year-end discounting, no stub · LIM-03 Gordon is the only TV method
 · LIM-04 debt at book proxy · LIM-05 P/E route ignores convertibles · LIM-06 no calendarisation ·
 LIM-07 single-year A/D, no PPA · LIM-08 advisory fees non-deductible · LIM-09 RSUs in full ·
-LIM-10 options all exercisable · LIM-11 float precision · LIM-12 no forecast-vs-history driver
-warning · LIM-13 missing D&A ≤ costs check · LIM-14 no trapped-cash adjustment · LIM-15 Hamada not
-wired to peer betas · LIM-16 financial institutions out of scope.
+LIM-10 options all exercisable · LIM-11 float precision · LIM-12 forecast-vs-history warning
+(resolved) · LIM-13 D&A ≤ costs check (resolved) · LIM-14 no trapped-cash adjustment · LIM-15 Hamada not
+wired to peer betas · LIM-16 financial institutions out of scope · LIM-17 no FX conversion · LIM-18 SQLite-only
+immutability triggers · LIM-19 owner-only authorisation.
