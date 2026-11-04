@@ -43,21 +43,31 @@ TABLES = {
 }
 
 
+def tables(url: str) -> set[str]:
+    engine = make_engine(url)
+    try:
+        return set(inspect(engine).get_table_names())
+    finally:
+        engine.dispose()
+
+
 def test_upgrade_creates_every_table(db_url: str) -> None:
-    assert set(inspect(make_engine(db_url)).get_table_names()) == TABLES
+    assert tables(db_url) == TABLES
 
 
 def test_migration_matches_orm_models(db_url: str) -> None:
-    with make_engine(db_url).connect() as conn:
+    engine = make_engine(db_url)
+    with engine.connect() as conn:
         diff = compare_metadata(MigrationContext.configure(conn), Base.metadata)
+    engine.dispose()
     assert diff == [], diff
 
 
 def test_downgrade_and_upgrade_round_trip(db_url: str) -> None:
     downgrade(db_url)
-    assert set(inspect(make_engine(db_url)).get_table_names()) == {"alembic_version"}
+    assert tables(db_url) == {"alembic_version"}
     upgrade(db_url)
-    assert set(inspect(make_engine(db_url)).get_table_names()) == TABLES
+    assert tables(db_url) == TABLES
 
 
 def seed(session: Session) -> tuple[User, Company, Source]:
