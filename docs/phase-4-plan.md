@@ -1,9 +1,12 @@
-# DealForge Phase 4: professional financial analysis frontend (plan)
+# DealForge Phase 4: professional financial analysis frontend (plan, revision 2)
 
-> **Status: PLANNING ONLY. Awaiting approval.** No frontend or backend code has been written for
-> Phase 4. Based on `main` at `2fd8299` (Phase 3 merged via PR #1), the 29 live API endpoints,
-> `docs/api-contract.md` and `docs/phase-3-design.md`. Decisions needing approval are marked **[D4-xx]**
-> and collected in section 9.
+> **Status: PLAN REVISED AFTER REVIEW. Awaiting final approval before F0.** No Phase 4 code has
+> been written. Based on `main` at `2fd8299` (Phase 3 merged via PR #1).
+>
+> **Revision 2** incorporates the owner's decisions on D4-01 to D4-11 (two amended: D4-02, D4-09)
+> and seven additional requirements (R1–R7). See [section 10](#10-decision-record) for the decision
+> record and [section 11](#11-conflicts-with-the-engine-and-phase-3-and-their-resolution) for
+> conflicts found in the Phase 3 code and how they are resolved.
 
 ## Contents
 
@@ -11,11 +14,14 @@
 2. [Proposed folder structure](#2-proposed-folder-structure)
 3. [Screens and screen-by-screen API mapping](#3-screens-and-screen-by-screen-api-mapping)
 4. [Backend changes required](#4-backend-changes-required)
-5. [Financial integrity rules for the frontend](#5-financial-integrity-rules-for-the-frontend)
-6. [UI design direction](#6-ui-design-direction)
-7. [Testing, error handling and acceptance criteria](#7-testing-error-handling-and-acceptance-criteria)
-8. [Milestone-wise implementation plan](#8-milestone-wise-implementation-plan)
-9. [Risks and unresolved decisions](#9-risks-and-unresolved-decisions)
+5. [Liquidity: line items and ratio formulas](#5-liquidity-line-items-and-ratio-formulas)
+6. [Financial integrity rules](#6-financial-integrity-rules)
+7. [UI design direction](#7-ui-design-direction)
+8. [Testing, error handling and acceptance criteria](#8-testing-error-handling-and-acceptance-criteria)
+9. [Milestone-wise implementation plan](#9-milestone-wise-implementation-plan)
+10. [Decision record](#10-decision-record)
+11. [Conflicts with the engine and Phase 3, and their resolution](#11-conflicts-with-the-engine-and-phase-3-and-their-resolution)
+12. [New limitations and remaining risks](#12-new-limitations-and-remaining-risks)
 
 ---
 
@@ -26,45 +32,42 @@ Browser ── React 18 + TypeScript (strict) + Vite
   │  React Router         routes = screens; URL carries company / project / scenario / run IDs
   │  TanStack Query       server state: caching, loading/error states, invalidation, cancellation
   │  React Hook Form+Zod  form structure only (required, type, length); financial rules stay server-side
-  │  openapi-typescript   TS types generated from FastAPI's OpenAPI → no hand-copied shapes
-  │  openapi-fetch        typed HTTP client; one middleware adds the bearer token and handles 401
-  │  Tailwind CSS         design tokens (section 6); small in-house component kit
+  │  openapi-typescript   TS types generated from the committed OpenAPI document (D4-08)
+  │  openapi-fetch        typed HTTP client; middleware adds bearer token, handles 401
+  │  Tailwind CSS         design tokens (section 7); small in-house component kit
   │  Recharts             historical bars/lines, UFCF bars, EV composition, bridge waterfall
   │  lib/format.ts        DISPLAY ONLY: rounding, %, x, parentheses, units, "—"/"NM"
+  │  lib/parse.ts         string-exact input parsing ("18.5" % → 0.185, no division)
   ▼
-Vite dev proxy /api → FastAPI :8000      (same origin: no CORS, token never sent cross-site)
-Production build: FastAPI serves frontend/dist as static files [D4-07]
+Development: Vite dev server proxies /api → FastAPI :8000 (same origin)
+Production:  FastAPI serves frontend/dist from the same origin, with SPA fallback (D4-07, B11)
 ```
 
-| Choice | Why | Trade-off |
-|---|---|---|
-| **TanStack Query** for all server data | Built-in loading, error, stale and refetch handling. Queries are cancelled when inputs change, which live DCF previews need. | One more library to learn. |
-| **Generated API types** (`openapi-typescript`) | Backend schema changes break the frontend build instead of failing silently at runtime. | Needs typed response models on the backend (B6). Today many endpoints return untyped `dict[str, Any]`. |
-| **URL-driven navigation** (`/companies/7/analysis`, `/runs/42`) | Every screen is linkable and reload-safe; an interviewer can be sent a deep link. | More route definitions. |
-| **No global state library** | Server state lives in TanStack Query. Only auth and the unsaved DCF draft are client state (React context / `useReducer`). | — |
-| **Draft vs saved vs frozen** made explicit in the DCF workspace | Mirrors the backend: scenarios are editable, runs are immutable. | The UI has three states to explain (section 3.4). |
+### Authentication and session handling (D4-01, approved)
 
-### Authentication and session handling
-
-- **Login:** `POST /auth/token` returns `{access_token, expires_at}`. The token lives in an in-memory store, mirrored to `sessionStorage` so a page reload doesn't log the user out. It's cleared on tab close, logout or any 401 **[D4-01]**.
-- **Every request:** an `openapi-fetch` middleware adds `Authorization: Bearer …`. Tokens are never put in URLs, logs, error messages or local files.
-- **Expiry:** the expiry time is known, so the app warns two minutes before it and redirects to `/login?next=<current path>` when it passes. Any 401 from the server (expired or revoked) does the same, and the user returns to the same screen after logging in. An unsaved DCF draft is kept in `sessionStorage` and restored after re-login.
+- **Storage:**
+  - The token is held in memory and mirrored to `sessionStorage` so a page reload keeps the session.
+  - It's cleared on logout, on any 401 and when the tab closes.
+  - It's never put in URLs, logs, error reports or `localStorage`.
+- **Requests:** an `openapi-fetch` middleware adds `Authorization: Bearer …`.
+- **Expiry:** a warning appears two minutes before `expires_at`. At expiry, or on any 401 (expired or revoked), the user goes to `/login?next=<path>`. An unsaved DCF draft is kept in `sessionStorage` and restored after re-login.
 - **Logout:** `POST /auth/logout` revokes the token server-side, then the client clears it.
-- **Hardening:** strict Content-Security-Policy in the production build (no inline scripts, `connect-src 'self'`). No `dangerouslySetInnerHTML` (ESLint rule). Never log a token (lint rule plus a test).
+- **Hardening:** strict Content-Security-Policy on the production `index.html` (`default-src 'self'`, no inline script). ESLint bans `dangerouslySetInnerHTML`. A unit test checks that the token never appears in console output or error objects.
+- **Deployment gate:** before any public deployment, auth must move to an **HttpOnly, Secure, SameSite=Strict cookie plus a CSRF token**. This is recorded as **LIM-20** (status *Planned*, marked as a deployment blocker) and in `docs/phase-3-design.md`.
 
 ### Loading, error and duplicate-submission handling (all screens)
 
 | Situation | Behaviour |
 |---|---|
-| First load | Skeleton tables and charts that keep the final layout, so nothing jumps around |
+| First load | Skeletons that keep the final layout |
 | Background refetch | Content stays visible, with a small "updating" indicator |
-| `error_type: validation` | Inline next to the field, mapped from `loc`; the form is not cleared |
-| `error_type: calculation` | Panel listing each engine issue (`code`, `field`, message), with links to the input; **previous results greyed out and labelled "Stale – inputs invalid"** |
-| `not_found` | "Not found or not yours" page (the backend deliberately doesn't distinguish) |
-| `conflict` / `import` / `immutable` | Specific dialogs, e.g. "FY2025 already exists – replace?" |
-| `authentication` | Session-expired flow (above) |
-| Network or 5xx | Retry button, with no automatic retry on POST |
-| Duplicate submissions | Mutation buttons are disabled while pending; "Freeze run" also needs a confirm step and has an idempotency key **[D4-10]** |
+| `error_type: validation` | Inline at the field from `loc`; the form isn't cleared |
+| `error_type: calculation` | Issue panel (code, field, message, link to input). Previous results greyed out and labelled **Stale – inputs invalid**. |
+| `not_found` | "Not found or not yours" page |
+| `conflict` / `import` / `immutable` | Specific dialogs, e.g. replace FY2025?, engine version changed, sample already loaded |
+| `authentication` | Session-expired flow |
+| Network or 5xx | Retry button; POST is never retried automatically |
+| Duplicate submissions | Every mutation button is disabled while pending. **Freeze run** sends a fresh `Idempotency-Key` per user action, enforced by the backend (D4-10, B5). |
 
 ---
 
@@ -72,440 +75,557 @@ Production build: FastAPI serves frontend/dist as static files [D4-07]
 
 ```
 dealforge/
-├── backend/                         # unchanged layout; Phase 4 additions marked +
+├── backend/
+│   ├── alembic/versions/0002_run_idempotency_and_indexes.py   + hand-written (section 4.10)
+│   ├── app/engine/
+│   │   ├── historical.py      ~ liquidity fields, ratios, checks (additive; existing formulas untouched)
+│   │   ├── presentation.py    + EBIT / UFCF margins from a DcfResult (pure, stdlib)
+│   │   ├── errors.py          ~ new codes
+│   │   └── version.py         ~ versioning policy text (value unchanged: 0.1.0)
+│   ├── app/importers/line_items.py   ~ 3 new items, 1 label clarified, completeness groups
 │   ├── app/api/v1/
-│   │   ├── dashboard.py             + B1
-│   │   ├── runs.py                  + B2, B3 (moved from valuations.py; same paths)
-│   │   └── sources.py               + B7
-│   ├── app/schemas/responses.py     + B6 typed response models
-│   ├── app/services/dashboard.py    + B1
-│   ├── app/services/sensitivity.py  + B3
-│   └── tests/api/
-│       ├── test_dashboard_api.py    +
-│       ├── test_runs_list_api.py    +
-│       ├── test_sensitivity_api.py  +
-│       ├── test_draft_preview_api.py+
-│       └── test_response_schemas.py + every 200 response validates against its OpenAPI model
-├── frontend/                        + all new
-│   ├── package.json  vite.config.ts  tsconfig.json  tailwind.config.ts  index.html
-│   ├── scripts/gen-api-types.mjs    # OpenAPI → src/api/schema.d.ts
-│   ├── src/
-│   │   ├── main.tsx
-│   │   ├── app/        App.tsx  routes.tsx  providers.tsx  AppShell.tsx  NotFound.tsx
-│   │   ├── api/        schema.d.ts (generated)  client.ts  errors.ts  queries/*.ts (one file per resource)
-│   │   ├── auth/       AuthProvider.tsx  RequireAuth.tsx  tokenStore.ts  LoginPage.tsx  RegisterPage.tsx
-│   │   ├── components/
-│   │   │   ├── ui/     Button Input PercentInput NumberInput Select Tabs Dialog Toast Badge
-│   │   │   │           DataTable NumberCell MetricCell BasisBadge ProvenancePopover
-│   │   │   │           IssueList ErrorPanel EmptyState Skeleton StaleOverlay SyntheticBanner
-│   │   │   └── charts/ HistoricalBars  MarginLines  UfcfBars  EvComposition  BridgeWaterfall
-│   │   ├── features/
-│   │   │   ├── dashboard/   companies/   financials/   analysis/
-│   │   │   ├── dcf/         results/     sensitivity/  audit/   runs/
-│   │   ├── lib/        format.ts  parse.ts (string-exact % parsing)  units.ts
-│   │   └── styles/     tokens.css
-│   ├── tests/          unit + component tests (Vitest + React Testing Library + MSW)
-│   │   └── fixtures/   API responses RECORDED from the real backend (never hand-typed numbers)
-│   └── e2e/            Playwright tests against the real backend + screenshot capture
-└── .github/workflows/ci.yml         + frontend job: lint, typecheck, vitest, build, e2e
+│   │   ├── dashboard.py  runs.py  sources.py  samples.py                    +
+│   │   └── spa.py        + production static serving + SPA fallback
+│   ├── app/services/
+│   │   ├── dcf_inputs.py      + ORM-free input assembly (refactor of build_dcf_inputs)
+│   │   ├── dashboard.py  sensitivity.py  samples.py  idempotency.py          +
+│   ├── app/schemas/responses.py      + typed response models (B6)
+│   ├── samples/ardent_precision_synthetic.csv   ~ + liquidity rows (DCF inputs unchanged)
+│   └── tests/
+│       ├── engine/test_liquidity.py  test_presentation.py  test_engine_version_guard.py   +
+│       ├── db/test_migration_0002.py  test_idempotency_concurrency.py                     +
+│       └── api/test_dashboard_api.py  test_runs_list_api.py  test_sensitivity_api.py
+│               test_draft_preview_api.py  test_samples_api.py  test_sources_api.py
+│               test_completeness_api.py  test_spa_fallback.py  test_response_schemas.py
+│               test_openapi_snapshot.py                                                   +
+├── docs/openapi.json          + committed OpenAPI document; CI fails if stale
+├── frontend/                  + (structure as in revision 1)
+│   ├── src/{app,api,auth,components/{ui,charts},features/*,lib,styles}
+│   ├── tests/ (Vitest + RTL + MSW; fixtures recorded from the real backend)
+│   └── e2e/   (Playwright; real backend; viewports 1024×768 and 1440×900)
+└── .github/workflows/ci.yml   ~ + OpenAPI drift check + Node 22 frontend job + E2E job
 ```
+
+`+` new · `~` modified. **No existing engine formula is modified.**
 
 ---
 
 ## 3. Screens and screen-by-screen API mapping
 
-Legend: ✅ existing endpoint · 🆕 backend addition from section 4 (B-numbers).
+Legend: ✅ existing endpoint · 🆕 new or extended (B-numbers in section 4). Every value on screen carries a basis marker: **R** reported · **D** derived · **A** assumed (R2).
 
-**Navigation:**
-- **Left rail:** Dashboard · Companies · Valuations · Saved Runs.
-- **Company context:** tabs for Overview · Financial Statements · Analysis · Import.
-- **Scenario context:** tabs for DCF Workspace · Results · Audit, plus a Sensitivity tab on a frozen run.
-- **Header:** a breadcrumb (`Company › Project › Scenario`), a units chip (`INR crores`), a SYNTHETIC banner when `is_synthetic`, and the user menu.
-
-### 3.1 Dashboard (`/`)
+### 3.1 Dashboard (`/`) and first-time experience (R5)
 
 | Feature | Endpoint |
 |---|---|
 | Totals: companies, projects, scenarios, frozen runs | 🆕 B1 `GET /dashboard` → `counts` |
-| Recent valuation runs (company, scenario, value per share with units, time) | 🆕 B1 → `recent_runs` |
-| Recently active companies | 🆕 B1 → `recent_companies` **[D4-03]** |
-| Recent activity feed (imports, scenario edits, runs) | 🆕 B1 → `recent_activity` (backend-written summaries) |
-| New company / new valuation actions | ✅ `POST /companies`, ✅ `POST /projects` |
-| Empty state for a first-time user | Same endpoint (`counts` all zero), linking to the guided "import sample company" path |
+| Recent valuation runs (with units, value per share, engine-compatibility flag) | 🆕 B1 → `recent_runs` |
+| **Recently active** companies, from audit events (D4-03) | 🆕 B1 → `recent_companies` |
+| Activity feed (server-written summaries) | 🆕 B1 → `recent_activity` |
+| **First-time user (all counts 0):** a guided panel, "Explore DealForge with a synthetic company", with a **Load sample company** button, plus "or create your own" | 🆕 B9 `GET /samples`, `POST /samples/ardent-precision/load` |
+| **Onboarding checklist** (shown until complete): ① company ② statements imported ③ scenario ④ frozen run. Progress comes from the server; suggested next actions link to Analysis, DCF, Sensitivity and Audit. | 🆕 B1 → `onboarding` |
+| New company / new valuation | ✅ `POST /companies`, ✅ `POST /projects` |
 
 ### 3.2 Company workspace (`/companies/:id`)
 
 | Feature | Endpoint |
 |---|---|
-| Name, sector, currency, scale, fiscal year end, synthetic flag | ✅ `GET /companies/{id}` |
-| Reporting periods and period-end dates | ✅ `GET /companies/{id}/financials` |
-| Key historicals: revenue, EBITDA, EBIT, net income per year | ✅ `GET …/financials` (reported items) + ✅ `GET …/historical-analysis` (standardised EBITDA, a derived value) |
-| Statement completeness per year (present / missing / required by the DCF) | 🆕 B8, adds `completeness` to `GET …/financials` |
-| Data validation warnings | ✅ `GET …/historical-analysis` → `issues` |
-| Provenance of any value (click → popover: source, file, SHA-256, row, column, raw text, basis) | ✅ line-item fields in `GET …/financials` + 🆕 B7 `GET /sources/{id}` |
-| Import flow: upload → dry-run preview with row/column error table → commit, or replace with a confirm step | ✅ `POST …/financials/import` (`dry_run=true`, then `false`, `replace`) |
-| Manual correction, including "mark as missing" (a required note) | ✅ `PATCH /line-items/{id}` |
-| Share instruments (options, RSUs, convertibles) | ✅ `GET`/`PUT …/share-instruments` |
+| Profile: name, sector, currency, scale, fiscal year end, **SYNTHETIC** banner | ✅ `GET /companies/{id}` |
+| Periods and key figures (revenue, EBITDA (D), EBIT, net income) | ✅ `GET …/financials`, ✅ `GET …/historical-analysis` |
+| **Completeness** per year: DCF group (definition unchanged) and **liquidity group** (new, R6) | 🆕 B8 extends `GET …/financials` |
+| Validation warnings | ✅ `GET …/historical-analysis` → `issues` |
+| Provenance popover for any value (basis, source, file, SHA-256, row, column, raw text) | ✅ line-item fields + 🆕 B7 `GET /sources/{id}` |
+| Provenance for a **derived** metric: formula plus its component values, each with its own provenance | 🆕 B10 `metric_definitions` in `GET …/historical-analysis` |
+| Import wizard: upload → dry-run preview (row/column errors) → commit, or replace with confirmation | ✅ `POST …/financials/import` |
+| Manual correction (value or "mark missing", **basis required**, note required) | ✅ `PATCH /line-items/{id}` (body amended, section 11 C6) |
+| Share instruments | ✅ `GET`/`PUT …/share-instruments` |
 
 ### 3.3 Financial analysis (`/companies/:id/analysis`)
 
 | Feature | Endpoint |
 |---|---|
-| Income statement, balance sheet, cash flow (rows grouped by `statement`, years as columns) | ✅ `GET /line-items` (dictionary) + ✅ `GET …/financials` |
-| Each cell: value, a basis badge (**R** reported · **D** derived · **A** assumed), "—" if missing, provenance on click | Same |
-| Growth, gross/EBITDA/EBIT/net margins | ✅ `GET …/historical-analysis` |
-| Leverage: net debt, net debt / EBITDA, interest coverage | ✅ same |
-| Working capital: NWC, NWC % of revenue, ΔNWC | ✅ same |
-| Cash flow: simple FCF, FCF conversion, CapEx % revenue, CapEx / D&A | ✅ same |
-| Earnings-vs-cash divergence, reconciliations, D&A check | ✅ same → `issues` |
-| **Liquidity ratios** (current ratio, quick ratio, cash ratio) | ❌ **Not computable today:** there are no total current assets or liabilities line items. **[D4-02]** |
-| Charts: revenue and EBITDA bars, margin lines, FCF vs net income | ✅ same data, plotted directly |
+| Income statement, balance sheet, cash flow (rows grouped by `statement`) with R/A badges | ✅ `GET /line-items` + ✅ `GET …/financials` |
+| Growth, margins, leverage, working capital, cash-flow metrics (all D) | ✅ `GET …/historical-analysis` |
+| **Liquidity: current, quick and cash ratios** (D), with "—" when missing and "NM" when TCL = 0 | 🆕 B10 (new metrics in `historical-analysis`) |
+| Liquidity consistency warnings | 🆕 B10 → `issues` |
+| Charts: revenue and EBITDA bars, margin lines, FCF vs net income, liquidity ratios | Same data, plotted directly |
 
 ### 3.4 DCF workspace (`/scenarios/:id/dcf`)
 
-Three states shown explicitly in a status strip:
-- **Saved scenario:** what's in the database.
-- **Draft:** local unsaved edits, outlined in blue.
-- **Frozen runs:** read-only snapshots, listed on the right.
+| Feature | Endpoint |
+|---|---|
+| Saved scenario: settings and assumptions (A) with rationale and source | ✅ `GET /scenarios/{id}` |
+| Historical columns next to the forecast (R/D) | ✅ `GET …/historical-analysis` |
+| Draft editing (drivers; tax; g; WACC build-up or override; market inputs) | Local draft only |
+| **Live recalculation** of the draft, with no database or audit writes (D4-04) | 🆕 B4 `POST /scenarios/{id}/preview` with body |
+| Projected revenue, EBITDA, D&A, EBIT, tax, NOPAT, CapEx, NWC, ΔNWC, UFCF, discount factor, PV (all D) | 🆕/✅ preview `result.*` |
+| **EBIT margin and UFCF margin rows** (D, D4-06) | 🆕 B5 `presentation` |
+| Units label | 🆕 B5 `context.company.{currency, scale}` |
+| LIM-12 flags on the exact input cell | ✅ `warnings[].field` |
+| Save, clone | ✅ `PUT /scenarios/{id}`, ✅ `POST …/clone` |
+| **Freeze run** (blocked while the draft is dirty; idempotent) | 🆕 B5 `POST /scenarios/{id}/runs` + `Idempotency-Key` |
+
+### 3.5 Valuation results (`/scenarios/:id/results`, `/runs/:id`)
 
 | Feature | Endpoint |
 |---|---|
-| Load the scenario: settings plus assumption rows with rationale and source | ✅ `GET /scenarios/{id}` |
-| Historical columns next to the forecast (FY2023–FY2025, actuals, read-only) | ✅ `GET …/historical-analysis` |
-| Editable drivers, Y1–Y5: revenue growth, **EBITDA margin**, D&A %, CapEx %, NWC % *(the engine is driven by EBITDA margin and D&A %; EBIT is derived – Phase 1 H.3)* | Edits stay in a local draft |
-| Tax rate, terminal growth, WACC inputs (Rf, β, ERP, Kd, size premium, optional Kp, target D/V) or a direct WACC override | Same |
-| Market inputs: share price, market-data date, debt basis, leases-as-debt | Same |
-| **Live recalculation** on each valid edit (debounced 400 ms, in-flight request cancelled) | 🆕 B4 `POST /scenarios/{id}/preview` with an optional draft body (nothing saved) |
-| Projected revenue, EBITDA, D&A, EBIT, tax, NOPAT, CapEx, NWC, ΔNWC, UFCF, discount factor, PV | ✅/🆕 preview response → `result.forecast`, `result.ufcf`, `result.valuation.flows` |
-| EBIT margin and UFCF margin rows (display) | 🆕 B5 `presentation` block **[D4-06]** |
-| LIM-12 "outside historical range" flags on the exact cell | ✅ preview `warnings[].field` (e.g. `years[3].ebitda_margin`) |
-| Save the draft into the scenario | ✅ `PUT /scenarios/{id}` |
-| Clone as Upside or Downside | ✅ `POST /scenarios/{id}/clone` |
-| **Freeze run** (disabled while a draft has unsaved changes, or while pending) | ✅ `POST /scenarios/{id}/runs` (+ idempotency key **[D4-10]**) |
+| EV, equity value, value per share, upside vs market (D), with units | ✅ `result.*` + 🆕 B5 `context` |
+| Sum of PV(FCF), TV, PV(TV), TV share of EV, implied exit multiple | ✅ `result.valuation`, `result.implied_exit_multiple` |
+| WACC build, bridge waterfall, dilution detail, dates | ✅ `result.wacc_build`, `result.bridge.lines`, `result.per_share`, `result.schedule` |
+| Input provenance table (every input with R/D/A, source, rationale) | ✅ `provenance` (market-input basis corrected, C5) |
 
-### 3.5 Valuation results (`/scenarios/:id/results`, also `/runs/:id`)
+### 3.6 Sensitivity (`/runs/:id/sensitivity`), frozen runs only (R1)
 
 | Feature | Endpoint |
 |---|---|
-| EV, equity value, value per diluted share, upside vs market price, with units | ✅ preview / `GET /runs/{id}` → `result.*`; units from 🆕 B5 `company` block |
-| PV of forecast cash flows, terminal value, PV of TV, **TV share of EV** | ✅ `result.valuation.{sum_pv_flows, terminal_value, pv_terminal_value, tv_share_of_ev}` |
-| Implied exit multiple (cross-check) | ✅ `result.implied_exit_multiple` |
-| WACC build (Ke, Kd after tax, weights) | ✅ `result.wacc_build` |
-| EV-to-equity bridge (waterfall chart plus table) | ✅ `result.bridge.lines` |
-| Diluted shares: method, each instrument, whether the circular case was solved | ✅ `result.per_share.dilution.lines`, `.circular`, `.method` |
-| "What does this mean?" side notes (plain text, not generated) | Static copy from `docs/interview-guide.md` |
-| Dates: statement, valuation, market data (D-07) | ✅ `result.schedule` |
-
-### 3.6 Sensitivity analysis (`/runs/:id/sensitivity`)
-
-Only available **for a frozen run**, so the grid always uses that run's frozen inputs and its engine version.
-
-| Feature | Endpoint |
-|---|---|
-| WACC × terminal growth grid of value per share, also selectable as EV or equity value | 🆕 B3 `POST /runs/{id}/sensitivity` |
-| Second preset: revenue-growth shift × EBITDA-margin shift | 🆕 B3 (engine already supports it) |
-| Base cell outlined; it **equals the run's stored value exactly** | 🆕 B3 asserts and returns `base_matches_run: true` |
-| Invalid cells (g ≥ WACC) shown as "n/a – g ≥ WACC" with the error code on hover | 🆕 B3 `cells[][].status/codes` |
-| Heat shading by change vs base | 🆕 B3 `change_vs_base`, computed by the backend |
-| Provenance strip: run ID, input fingerprint, engine version | 🆕 B3 echoes them |
+| WACC × g grid; output EV, equity or value per share; growth-shift × margin-shift preset | 🆕 B3 `POST /runs/{id}/sensitivity` |
+| Base cell outlined, `base_matches_run: true` | 🆕 B3 |
+| Invalid cells with code; heat shading from backend `change_vs_base` | 🆕 B3 |
+| Run frozen under another engine version: grid refused, with an explanation and a "re-freeze on current engine" action; stored results stay fully viewable | 🆕 B3 409 + B2 `engine_compatible` flag |
 
 ### 3.7 Model audit (`/scenarios/:id/audit`, `/runs/:id/audit`)
 
-Grouped and filterable by severity. Each item shows code, field, message, and a "go to" link.
-
 | Group | Endpoint |
 |---|---|
-| Missing financial inputs (blocking) | ✅ the preview's 422 `calculation` envelope (`MISSING_INPUT` + field), rendered as audit items rather than a failure |
-| Historical consistency (EBIT and net income reconciliation, balance sheet, D&A check, earnings-vs-cash) | ✅ `GET …/historical-analysis` → `issues` |
-| Forecast outside historical range (LIM-12) | ✅ preview / run `warnings` (`DRIVER_OUTSIDE_HISTORY`, `DRIVER_NO_HISTORY`) |
-| Valuation warnings (TV share, narrow spread, high g, stale market data, debt at book…) | ✅ preview / run `warnings` |
-| Provenance gaps (inputs with `status: missing`, derived NWC built from partial items) | ✅ preview / run `provenance` |
-| Invalid or unsupported assumptions | ✅ `INVALID_ASSUMPTIONS` and `validation` envelopes |
-| "Why?" detail: full message, and for engine codes a short explanation from a static code catalogue | Static map from `errors.Code` → doc text |
+| Missing inputs (blocking) | ✅ preview 422 `calculation` envelope, rendered as audit items |
+| Historical consistency, including the new liquidity checks | ✅/🆕 `historical-analysis` → `issues` |
+| Forecast outside history (LIM-12) | ✅ `warnings` |
+| Valuation warnings | ✅ `warnings` |
+| Provenance gaps (inputs with `status: missing`, partial NWC, values with basis A where R expected) | ✅ `provenance` |
+| Invalid assumptions | ✅ `INVALID_ASSUMPTIONS` / `validation` |
+| "Why?" explanations | Static catalogue keyed by issue code (frontend copy, no numbers) |
 
-### 3.8 Saved valuation runs (`/runs`, `/runs/:id`)
+### 3.8 Saved runs (`/runs`, `/runs/:id`)
 
 | Feature | Endpoint |
 |---|---|
-| Paginated table: run ID, company, project / scenario, label, valuation date, engine version, input fingerprint (short, copyable), EV, equity, value per share, units, created at | 🆕 B2 `GET /runs?page=&page_size=&company_id=&project_id=&scenario_id=` |
-| Filters by company / project / scenario | 🆕 B2 |
-| Run detail: results (3.5), inputs, provenance, warnings | ✅ `GET /runs/{id}` (+ 🆕 B5 context) |
-| "Verify reproducibility" button showing identical / hash match / engine version | ✅ `POST /runs/{id}/verify` |
-| No edit or delete anywhere | The API offers none, and the UI shows a lock icon labelled "Frozen run" |
+| Paginated, filterable list: run ID, company, scenario, valuation date, engine version, fingerprint, EV, equity, value per share, units, created at, `engine_compatible` | 🆕 B2 `GET /runs` |
+| Run detail (read-only, lock icon) | ✅ `GET /runs/{id}` + 🆕 B5 `context`/`presentation` |
+| Verify reproducibility (works on any engine version; reports differences) | ✅ `POST /runs/{id}/verify` + 🆕 `engine_version_changed` field |
 
 ---
 
 ## 4. Backend changes required
 
-All additions are read-only or compute-only. **No engine formula changes.** The engine stays standard-library-only, and every addition gets owner-scoping tests.
+All endpoints are owner-scoped: another user's resource returns 404, and lists filter by the current user.
 
-### B1: `GET /api/v1/dashboard`
+| # | Change | Kind |
+|---|---|---|
+| B1 | `GET /dashboard`, including the `onboarding` block | New endpoint |
+| B2 | `GET /runs`, global and paginated | New endpoint |
+| B3 | `POST /runs/{id}/sensitivity`, frozen inputs and matching engine only | New endpoint |
+| B4 | Draft preview via `POST /scenarios/{id}/preview` with a body; refactors input assembly to be ORM-free | Extended endpoint |
+| B5 | `context` and `presentation` blocks on preview and run responses; `Idempotency-Key` on freeze | Extended endpoints |
+| B6 | Typed response models, a committed `docs/openapi.json` and a drift check | Schema only |
+| B7 | `GET /sources/{id}` | New endpoint |
+| B8 | Completeness groups (DCF unchanged, plus liquidity) in `GET …/financials` | Extended endpoint |
+| **B9** | **Samples:** `GET /samples`, `POST /samples/{id}/load` (R4, R5) | New endpoints |
+| **B10** | **Liquidity:** 3 line items, 3 ratios, 4 checks, metric definitions (D4-02, R6) | Engine (additive) + importer + response |
+| **B11** | **SPA serving and fallback** (D4-07) | New routes |
+| **B12** | **Basis corrections:** market-input basis, PATCH requires `basis`, `basis` on every metric and value (R2) | Fixes + contract change |
+
+### 4.1 B1: `GET /api/v1/dashboard`
 
 ```jsonc
 {
-  "counts": { "companies": 3, "projects": 2, "scenarios": 4, "runs": 7 },
-  "recent_runs": [            // newest 5 of the user's runs
-    { "id": 7, "label": "Board pack v1", "created_at": "2026-11-05T10:02:11Z",
-      "company": { "id": 1, "name": "Ardent… (SYNTHETIC)", "currency": "INR", "scale": "crores" },
+  "counts": { "companies": 1, "projects": 1, "scenarios": 1, "runs": 1 },
+  "onboarding": {
+    "complete": false,
+    "steps": [
+      { "key": "company",    "done": true,  "label": "Create or load a company" },
+      { "key": "statements", "done": true,  "label": "Import financial statements" },
+      { "key": "scenario",   "done": true,  "label": "Create a valuation scenario" },
+      { "key": "run",        "done": false, "label": "Freeze a valuation run" } ],
+    "sample_available": true, "sample_loaded": true },
+  "recent_runs": [ { "id": 7, "label": "…", "created_at": "…",
+      "company": { "id": 1, "name": "…", "currency": "INR", "scale": "crores", "is_synthetic": true },
       "scenario": { "id": 3, "name": "Base" },
-      "value_per_share": 31.215006617818556, "engine_version": "0.1.0" } ],
-  "recent_companies": [       // by latest audit event touching the company or its projects
-    { "id": 1, "name": "…", "last_activity_at": "…", "periods": [2023, 2024, 2025] } ],
-  "recent_activity": [        // newest 20 audit events
-    { "at": "…", "entity": "valuation_run", "entity_id": 7, "action": "create",
-      "summary": "Froze run 7 for scenario 'Base' (sha256:37c66a53…)" } ]
+      "value_per_share": 31.215006617818556, "engine_version": "0.1.0", "engine_compatible": true } ],
+  "recent_companies": [ { "id": 1, "name": "…", "is_synthetic": true,
+      "last_activity_at": "…", "fiscal_years": [2023, 2024, 2025] } ],
+  "recent_activity": [ { "at": "…", "entity": "valuation_run", "entity_id": 7, "action": "create",
+      "company_id": 1, "summary": "Froze run 7 for scenario 'Base' (sha256:37c66a53…)" } ]
 }
 ```
 
-- **Access:** every query is filtered by `owner_id` or `user_id` = the current user.
-- **Privacy:** `recent_activity` returns server-written summaries only, not the raw `detail` JSON (which can hold old values).
-- **Tests:**
-  - counts are exact after a scripted setup;
-  - another user's data never appears, and their counts read 0;
-  - ordering and limits;
-  - an empty account returns all zeros with empty lists;
-  - summaries contain no raw old values.
+- **Sizes:** 5 recent runs, 5 recent companies, 20 activity items.
+- **Onboarding:** steps are derived from existing rows only; nothing is written.
+- **Recently active companies:** the latest audit event resolved to its company, through company, period, line item, scenario/project or run.
+- **Privacy:** summaries are written by the server. The raw audit `detail` (old values) is never returned.
 
-### B2: `GET /api/v1/runs` (global, paginated)
+### 4.2 B2: `GET /api/v1/runs?page&page_size&company_id&project_id&scenario_id`
 
-Query: `page ≥ 1` (default 1), `page_size 1..100` (default 25), optional `company_id`, `project_id` or `scenario_id`. Ordered `created_at DESC, id DESC`.
+- **Paging:** `page ≥ 1`, `page_size 1..100` (default 25). Ordered `created_at DESC, id DESC`.
+- **Response:** `{page, page_size, total, items[]}`. Each item: `id, label, created_at, engine_version, engine_compatible, input_hash, valuation_date, company{id,name,currency,scale,is_synthetic}, project{id,name}, scenario{id,name}, enterprise_value, equity_value, value_per_share, warning_count`.
+- **Values:** read **verbatim** from the stored `result_json` / `inputs_json`, never recomputed, so they're always available whatever the current engine version (R1).
+- **Filters:** a filter ID belonging to another user returns an empty page.
 
-```jsonc
-{ "page": 1, "page_size": 25, "total": 7,
-  "items": [ { "id": 7, "label": "…", "created_at": "…", "engine_version": "0.1.0",
-               "input_hash": "sha256:…", "valuation_date": "2025-03-31",
-               "company": {"id":1,"name":"…","currency":"INR","scale":"crores"},
-               "project": {"id":2,"name":"…"}, "scenario": {"id":3,"name":"Base"},
-               "enterprise_value": 3558.79…, "equity_value": 3248.79…,
-               "value_per_share": 31.2150…, "warning_count": 3 } ] }
-```
-
-- **Values:** read verbatim from the stored `result_json` and `inputs_json`; nothing is recomputed.
-- **Access:** `created_by` = the current user. A filter ID belonging to another user returns an empty page, not an error, so it doesn't reveal that the ID exists.
-- **Tests:**
-  - pagination boundaries;
-  - `page_size` > 100 → `validation`;
-  - filters;
-  - ordering;
-  - isolation between users;
-  - listed values equal `GET /runs/{id}` exactly.
-
-### B3: `POST /api/v1/runs/{run_id}/sensitivity` (frozen inputs only)
+### 4.3 B3: `POST /api/v1/runs/{run_id}/sensitivity`
 
 ```jsonc
-// request: the server builds centred axes around the run's own base values
-{ "row": { "variable": "wacc",            "step": 0.005, "steps_each_side": 3 },
+// request (axes are built by the server around the run's own base values, D4-11)
+{ "row": { "variable": "wacc", "step": 0.005, "steps_each_side": 3 },
   "col": { "variable": "terminal_growth", "step": 0.005, "steps_each_side": 3 },
-  "output": "value_per_share" }      // or enterprise_value | equity_value
+  "output": "value_per_share" }
 // response
-{ "run_id": 7, "input_hash": "sha256:…", "engine_version": "0.1.0",
+{ "run_id": 7, "input_hash": "sha256:…", "engine_version": "0.1.0", "basis": "derived",
   "row_variable": "wacc", "col_variable": "terminal_growth", "output": "value_per_share",
-  "row_values": [...], "col_values": [...], "base_row": 3, "base_col": 3,
+  "row_values": […], "col_values": […], "base_row": 3, "base_col": 3,
   "base_value": 31.2150…, "base_matches_run": true,
   "cells": [[ { "value": 34.1…, "status": "ok", "codes": [], "change_vs_base": 0.0931… },
               { "value": null, "status": "invalid", "codes": ["TERMINAL_GROWTH_GE_WACC"],
                 "change_vs_base": null } ]] }
 ```
 
-**Integrity rules:**
-1. Inputs come **only** from the run's frozen `inputs_json`, via the same strict `DcfInputsIn` reconstruction `verify` uses, and nothing from the scenario's current state.
-2. Before computing, the server checks `fingerprint(rebuilt inputs) == run.input_hash`; a mismatch means `409 RUN_INPUTS_CORRUPT`.
-3. If `ENGINE_VERSION != run.engine_version`, the request is refused with `409 ENGINE_VERSION_MISMATCH`, never silently computed on a different engine **[D4-05]**.
-4. The base cell must equal the stored run output exactly (`==`), or the server returns a 500 with `BASE_MISMATCH`.
-5. Allowed variables: `wacc`, `terminal_growth`, `revenue_growth_shift`, `ebitda_margin_shift`, `capex_pct_shift`, `tax_rate`.
-6. Limits: `steps_each_side ≤ 5` (11×11 at most); `step` > 0 and within a sensible range per variable.
-7. Results aren't stored. They're deterministic, recomputable functions of a frozen run.
+**Integrity sequence (R1):**
+1. Load the run (owner check).
+2. **If `run.engine_version != ENGINE_VERSION`: 409 `ENGINE_VERSION_MISMATCH`.** The message says the stored results are still available and suggests re-freezing (D4-05).
+3. Rebuild inputs **only** from `run.inputs_json` with the strict `DcfInputsIn` schema.
+4. **If `fingerprint(inputs) != run.input_hash`: 409 `RUN_INPUTS_CORRUPT`.**
+5. Build the axes with `engine.sensitivity.centered_axis(base, step, n)`. The base comes from the frozen result (WACC = `result.wacc`, g = `inputs.terminal_growth`, shift = 0, tax = `inputs.tax_rate`).
+6. Run the engine's `dcf_sensitivity`.
+7. **Assert the base cell `==` the run's stored output.** If it doesn't match, return 500 `BASE_MISMATCH`; this should be impossible after steps 2 and 4.
+8. Compute `change_vs_base = (v − base) / base` in a pure backend function. If `base == 0` it's `null` with reason NM.
 
-**Tests:**
-- base cell equals `GET /runs/{id}` exactly;
-- editing the scenario after freezing doesn't change the grid (proof it uses frozen inputs);
-- monotonic in WACC and g;
-- g ≥ WACC cells invalid with the code;
-- engine-version mismatch → 409 (simulated by monkeypatching `ENGINE_VERSION`);
-- a corrupted fingerprint → 409;
-- another user's run → 404;
-- limits → `validation`;
-- `change_vs_base` equals the backend's own value minus base, divided by base.
+- **Limits:** variables `wacc`, `terminal_growth`, `revenue_growth_shift`, `ebitda_margin_shift`, `capex_pct_shift`, `tax_rate`, with row ≠ col. `steps_each_side` 1..5. `step` from 0.0005 to 0.05 (tax 0.005 to 0.10). A violation returns `validation`.
+- **Persistence:** results aren't stored; they're deterministic in the frozen inputs.
 
-### B4: draft preview, `POST /scenarios/{id}/preview` with an optional body (live editing)
+### 4.4 B4: draft preview (D4-04), plus the refactor it requires
 
-- **Body:** optional `{settings, assumptions}` (same schemas as `PUT`).
-- **Without a body:** behaviour is unchanged.
-- **With a body:** the backend builds inputs from the company's statements plus the draft, runs the engine, **saves nothing**, and labels the response `"draft": true`. Provenance marks assumption values as `basis: "assumed", draft: true`.
-- **Why:** without this, every keystroke would `PUT` the scenario, filling the audit log and blurring saved vs draft.
-- **Tests:**
-  - a draft preview never changes the database (row counts and audit log unchanged);
-  - a draft equal to the saved scenario gives a byte-identical result to a plain preview;
-  - draft validation errors arrive as `validation` / `INVALID_ASSUMPTIONS`.
+- **Request:** `POST /scenarios/{id}/preview`, body optional: `{settings: ScenarioSettingsIn, assumptions: AssumptionIn[]}`.
+- **Response:** the same shape as now, plus `"draft": true|false`.
+- **Refactor (C2):** input assembly moves to `services/dcf_inputs.py::assemble(company, periods, settings, assumptions, instruments)`, which takes **plain dataclasses**, not ORM objects.
+  - Saved preview and freeze map the ORM scenario to plain data.
+  - A draft maps the request body to plain data.
+  - No ORM `Scenario` is created for a draft, so nothing can autoflush into the session.
+- **Guarantee:** a draft preview performs **no INSERT, UPDATE or DELETE, and no audit event**. A SQLAlchemy `before_flush` / `after_cursor_execute` probe in tests asserts zero writes.
 
-### B5: context and presentation fields on preview and run responses
+### 4.5 B5: context, presentation and idempotent freeze
 
-- **`company` block:** `{id, name, currency, scale, is_synthetic}` plus `scenario` and `project` names, so every figure can be labelled with units. The frontend never guesses units.
-- **`presentation` block [D4-06]:** per forecast year, `ebitda_margin`, `ebit_margin` and `ufcf_margin`, computed in Python from the result. These are **not** stored in or added to the frozen `result_json`, so the engine output and run hashes don't change.
-- **Tests:**
-  - presentation values equal hand calculations for KA-DCF-03;
-  - stored `result_json` is byte-identical before and after this change.
+- **`context`** on preview and run responses: `{company{id,name,currency,scale,is_synthetic}, project{id,name}, scenario{id,name}}`.
+- **`presentation`** (D4-06), from a new pure engine function, `engine.presentation.margins(result)`:
+  - per forecast year, `ebit_margin = EBIT_t / Revenue_t` and `ufcf_margin = UFCF_t / Revenue_t`;
+  - `Revenue_t ≤ 0` gives NM;
+  - `basis: "derived"`.
+  - For stored runs it's computed on read from the stored `result_json`.
+  - **It's never written into `result_json`**, so run fingerprints and stored results are byte-identical before and after this change (tested).
+- **`Idempotency-Key`** on `POST /scenarios/{id}/runs` (D4-10). Optional in the API; the frontend always sends one.
+  - **Format:** 8–128 characters of `[A-Za-z0-9_-]`; anything else is a `validation` error.
+  - **First request:** 201 with the new run. The key is stored on the run with `request_fingerprint = sha256(canonical({"scenario_id", "label"}))`.
+  - **Same user, same key, same fingerprint:** 200 with **the same run** and the header `Idempotent-Replayed: true`. No new row and no new audit event. This holds even if the scenario was edited in between, because the key identifies the request.
+  - **Same user, same key, different scenario or label:** 409 `IDEMPOTENCY_KEY_REUSED`.
+  - **Different users** with the same key are independent.
+  - **Concurrency:**
+    - the unique index `(created_by, idempotency_key)` arbitrates;
+    - each request computes, then INSERTs;
+    - on `IntegrityError` it rolls back, re-reads the winning row, compares fingerprints and returns it;
+    - SQLite's `busy_timeout` is set explicitly (5 s) so concurrent writers wait rather than fail.
 
-### B6: typed response models (OpenAPI)
+### 4.6 B6: typed response models and the OpenAPI document (D4-08)
 
-- Pydantic response models for every endpoint the frontend calls. Engine result shapes come from the engine dataclasses via `TypeAdapter`, so they're not hand-copied.
-- There's no behaviour change: responses keep being serialised by the canonical JSON path.
-- **Test:** every 200 response in the API test suite validates against its declared response schema, so the OpenAPI and the real responses can't drift apart.
-- This is what makes the generated TS types trustworthy.
+- **Models:** Pydantic response models for every endpoint the frontend calls. Engine result shapes are derived from the engine dataclasses via `TypeAdapter`, not hand-copied.
+- **No behaviour change:** responses are still serialised through the canonical JSON path.
+- **`docs/openapi.json` is committed.** CI regenerates it and **fails on any difference**; the frontend generates `schema.d.ts` from the committed file.
+- **Test:** every 200 response produced anywhere in the API test suite is validated against its declared response model, so the schema and the real responses can't drift.
+- **OpenAPI implications:**
+  - new paths for B1–B3, B7 and B9;
+  - a request body on preview;
+  - the `Idempotency-Key` header parameter and `Idempotent-Replayed` response header;
+  - new 409 responses documented;
+  - new error codes listed in the `error_type` enum descriptions.
 
-### B7: `GET /api/v1/sources/{id}`
+### 4.7 B7: `GET /api/v1/sources/{id}`
 
-- **Returns:** `{id, kind, title, file_name, file_sha256, uri, notes, created_at}`.
-- **Access:** owner-only.
-- **Tests:** isolation, and fields matching what the import recorded.
+Returns `{id, kind, title, file_name, file_sha256, uri, notes, created_at}`. Owner-only.
 
-### B8: completeness in `GET /companies/{id}/financials`
+### 4.8 B8: completeness, with the DCF definition unchanged (R6)
 
-- **Per period:** `{present: n, missing: n, absent: n, dcf_required_missing: [codes]}`.
-- **Definitions:**
-  - *present* = a row with a value;
-  - *missing* = a row with NULL;
-  - *absent* = no row at all;
-  - *DCF-required* = revenue, the NWC components, the bridge items and basic shares, defined once in Python.
-- **Tests:** counts on the sample company; a manual "mark as missing" moves an item from present to missing.
+In `GET …/financials`, each period gains:
 
-**Backend regression:**
-- all 374 existing tests stay green, with new tests added alongside;
-- CI keeps the Python 3.12/3.13 matrix;
-- the engine purity, no-silent-zero and limitations-register tests stay in place.
+```jsonc
+"completeness": {
+  "present": 28, "missing": 1, "absent": 3,              // row with value / row with NULL / no row
+  "groups": {
+    "dcf":       { "required": [...12 codes...], "missing": [], "complete": true },
+    "liquidity": { "required": ["total_current_assets","total_current_liabilities","cash",
+                                "marketable_securities","accounts_receivable"],
+                   "missing": [], "complete": true } } }
+```
+
+- **DCF group:** exactly the inputs the DCF already requires: `revenue, accounts_receivable, inventory, accounts_payable, cash, total_debt, lease_liabilities, preferred_equity, non_controlling_interest, other_debt_like_claims, non_operating_assets, basic_shares`. **Unchanged.**
+- **Liquidity group:** new and separate, so liquidity gaps never affect DCF completeness.
+- **Source of truth:** both groups are defined once, in `line_items.REQUIRED_FOR`.
+
+### 4.9 B9: sample company (R4, R5)
+
+- **`GET /samples`** → `[{id: "ardent-precision", name: "Ardent Precision Components (SYNTHETIC)", description, is_synthetic: true, includes: ["3 fiscal years", "share instruments", "Base scenario (KA-DCF-03)"]}]`
+- **`POST /samples/ardent-precision/load`** runs as **one transaction**:
+  - creates the company (`is_synthetic: true`);
+  - imports `samples/ardent_precision_synthetic.csv` **through the same importer** (source kind `synthetic`, with file name and SHA-256);
+  - sets the share instruments (source kind `synthetic`);
+  - creates the project "Ardent valuation (sample)" and the "Base" scenario from `samples/ardent_base_scenario.json` (every assumption basis `assumed`, with rationale);
+  - writes audit events;
+  - returns `{company_id, project_id, scenario_id}`.
+- **Already loaded:** 409 `SAMPLE_ALREADY_LOADED`, returning the existing IDs.
+- **Any failure:** nothing is created.
+
+### 4.10 Database migration `0002` (hand-written, not autogenerated: see C3)
+
+```python
+op.add_column("valuation_runs", sa.Column("idempotency_key", sa.String(128), nullable=True))
+op.add_column("valuation_runs", sa.Column("request_fingerprint", sa.String(80), nullable=True))
+op.add_column("valuation_runs", sa.Column("inputs_schema_version", sa.Integer(),
+                                          nullable=False, server_default="1"))
+op.create_index("uq_runs_owner_idempotency", "valuation_runs",
+                ["created_by", "idempotency_key"], unique=True)       # NULLs never collide
+op.create_index("ix_runs_owner_created", "valuation_runs", ["created_by", "created_at"])
+op.create_index("ix_audit_user_created", "audit_events", ["user_id", "created_at"])
+```
+
+- **Native `ALTER TABLE … ADD COLUMN`, no batch recreate**, so the two immutability triggers on `valuation_runs` survive. `ADD COLUMN` isn't an `UPDATE`, so the triggers don't fire.
+- **Downgrade** drops the indexes and recreates the table without the columns (SQLite can't drop columns in place), then **re-creates both triggers explicitly**.
+- **Existing runs** get `idempotency_key NULL` and `inputs_schema_version 1`; their data is otherwise untouched.
+- **`inputs_schema_version`** tags which `DcfInputs` reader a run needs, for future schema evolution (LIM-22).
+- **No migration is needed for the liquidity items:** line items are stored in tall format (one row per item code).
+
+### 4.11 B11: production static serving and SPA fallback (D4-07)
+
+- **Config:** `DEALFORGE_FRONTEND_DIST` points to `frontend/dist`. If it's unset or missing, the API runs as today.
+- **Static files:** `/assets/*` is served by `StaticFiles` with immutable cache headers. A missing asset is a **404, never `index.html`** (otherwise HTML would be served as JavaScript).
+- **Catch-all:** a final `GET`/`HEAD /{path:path}` route serves a real file from `dist` if one exists, otherwise `index.html` with `Cache-Control: no-cache` and the CSP header.
+- **Never intercepted:** paths starting with **`api/`**, plus `docs`, `redoc` and `openapi.json`. An unknown `/api/...` path returns the JSON 404 envelope. Non-GET methods on SPA paths return 405.
+- **Registration order:** the fallback is registered after every API router, and a test checks the order.
+
+### 4.12 B12: basis on every value (R2)
+
+| Value | Basis rule |
+|---|---|
+| Imported line items | As chosen at import (`reported` / `assumed`), unchanged |
+| Manual corrections | **`PATCH /line-items/{id}` now requires `basis`** (`reported` if corrected to a filed figure, else `assumed`). Previously the old basis was kept, so an analyst-entered number could still say "reported" (C6). |
+| Historical metrics, liquidity ratios, DCF outputs, presentation margins, sensitivity cells | `derived`. Each metric object and each result block carries `"basis": "derived"`. |
+| Scenario assumptions | `assumed` (or as stored) |
+| Market inputs (share price, market-data date) | `reported` **only if `market_source_id` is set**, otherwise `assumed`. It's currently hard-coded as `reported` (C5). Affects provenance of **new** runs only; stored runs are never rewritten. |
+| Base NWC | `derived`, with its components' provenance |
 
 ---
 
-## 5. Financial integrity rules for the frontend
+## 5. Liquidity: line items and ratio formulas
+
+### 5.1 Line items (all on the balance sheet, at the fiscal year-end; positive magnitudes, D-02)
+
+| Code | Label | Status | Definition and rules |
+|---|---|---|---|
+| `total_current_assets` | Total current assets | **New** | As reported: assets expected to be realised within 12 months or one operating cycle. |
+| `total_current_liabilities` | Total current liabilities | **New** | As reported, **including** the current portion of debt and current lease liabilities. |
+| `marketable_securities` | Short-term marketable securities | **New** | Liquid investments held as current assets and **not** already in cash and cash equivalents. **Must not double-count `cash`.** If the company has none, enter **0** explicitly. A blank stays *missing* and the ratios that need it become *missing* (LIM-23). |
+| `cash` | Cash and cash equivalents | Existing, unchanged | Reused. |
+| `accounts_receivable` | **Trade (accounts) receivable** | Existing; **label clarified only** | Reused as trade receivables. The code is unchanged, so existing data and the NWC formula are unaffected. |
+| `inventory` | Inventory | Existing, unchanged | Used in the consistency check only (the quick ratio is built from components; 5.2). |
+
+The operating NWC used in the DCF (AR + inventory + other operating current assets − AP − other operating current liabilities) **is not changed** by these items.
+
+### 5.2 Ratio formulas (new engine metrics in `historical.py`, missing-aware)
+
+| Metric | Formula | Missing | Not meaningful |
+|---|---|---|---|
+| `current_ratio` | `total_current_assets / total_current_liabilities` | Either input missing → MISSING, naming the inputs | TCL = 0 → NM ("total current liabilities is zero") |
+| `quick_ratio` | `(cash + marketable_securities + accounts_receivable) / total_current_liabilities` | Any of the four missing → MISSING, naming each | TCL = 0 → NM |
+| `cash_ratio` | `(cash + marketable_securities) / total_current_liabilities` | Any of the three missing → MISSING | TCL = 0 → NM |
+
+- **Quick ratio definition:** built from components (cash + marketable securities + receivables), the conservative acid test. It **never falls back** to the alternative `(TCA − inventory) / TCL`. Switching definitions silently would be the same mistake D-03 rules out for EBITDA. The definition is shown in `metric_definitions` (B10).
+- **Zeros:** explicit zeros are data. Cash 0, securities 0 and receivables 0 with TCL 300 give a quick ratio of **0.0**, which is OK and *not* missing.
+- **Negative inputs** are rejected at import (`SIGN_CONVENTION`).
+
+### 5.3 Consistency checks (warnings, D-12)
+
+| Code | Check | Missing-data rule |
+|---|---|---|
+| `LIQUIDITY_COMPONENTS_EXCEED_CA` | Sum of the **present** current-asset components (cash, marketable securities, AR, inventory, other operating current assets) > TCA | Uses only components that are present (all are ≥ 0, so a partial sum is still a valid lower bound) and **lists which were included**. Skipped and disclosed if TCA is missing. |
+| `OPERATING_PAYABLES_EXCEED_CL` | AP + other operating current liabilities (present ones) > TCL | Same rule |
+| `CURRENT_ASSETS_EXCEED_TOTAL` | TCA > total assets | Only if both are present |
+| `CURRENT_LIABILITIES_EXCEED_TOTAL` | TCL > total liabilities | Only if both are present |
+
+### 5.4 Known-answer cases (hand-computed from the updated synthetic sample)
+
+Sample additions (INR crores; **marketable securities entered explicitly as 0**):
+
+| | FY2023 | FY2024 | FY2025 |
+|---|---|---|---|
+| Total current assets | 480 | 540 | 600 |
+| Total current liabilities | 260 | 280 | 300 |
+| Marketable securities | 0 | 0 | 0 |
+| *(existing)* cash / AR / inventory / other operating CA | 120 / 200 / 140 / 20 | 135 / 225 / 158 / 22 | 150 / 250 / 175 / 25 |
+
+In every year, TCA equals cash + AR + inventory + other operating current assets exactly (e.g. FY2025: 150 + 250 + 175 + 25 = 600). AP + other operating current liabilities (FY2025: 150) ≤ TCL, and TCA ≤ total assets.
+
+| Case | Expected |
+|---|---|
+| **KA-LIQ-01** FY2025 | current **2.000000**, quick (150+0+250)/300 = **1.333333**, cash 150/300 = **0.500000** |
+| FY2024 | 540/280 = **1.928571**, 360/280 = **1.285714**, 135/280 = **0.482143** |
+| FY2023 | 480/260 = **1.846154**, 320/260 = **1.230769**, 120/260 = **0.461538** |
+| **KA-LIQ-02** marketable securities missing | current OK; quick and cash **MISSING** ("marketable_securities") |
+| **KA-LIQ-03** TCL = 0 | all three **NM** |
+| **KA-LIQ-04** explicit zeros (cash = ms = AR = 0) | quick **0.0** and cash **0.0** (OK, not missing) |
+| **KA-LIQ-05** cash 400 with TCA 600 | `LIQUIDITY_COMPONENTS_EXCEED_CA` (400+0+250+175+25 = 850 > 600) |
+| **KA-LIQ-06** TCA missing | current **MISSING**; component check skipped and disclosed; quick and cash still OK |
+| **KA-DCF-03 unchanged** | The updated sample still produces **31.2150** per share; none of the new items is a DCF input (test) |
+
+---
+
+## 6. Financial integrity rules
 
 | Rule | Enforcement |
 |---|---|
-| **No financial arithmetic in TypeScript.** Every figure, ratio, total, change and margin comes from an API field. | (1) A code-review checklist. (2) `lib/format.ts` is the only module that transforms numbers: it rounds, scales ×100 for a % *display*, and adds units and parentheses. (3) An ESLint rule bans arithmetic operators on values typed as API financial fields outside `lib/` (a custom rule on generated-type identifiers; if that proves brittle, review plus E2E tracing instead). (4) **Display-trace E2E test:** for the results, runs and sensitivity screens, every displayed number equals `format(apiValue)` for the field it's bound to. |
-| **Exact input parsing.** Typing `18.5` in a % field sends `0.185`, the same float as the JSON literal `0.185`. | `lib/parse.ts` shifts the decimal point on the *string* (`"18.5"` → `"0.185"`) and then calls `Number()`. It never divides by 100, which would give values like `1.1/100 = 0.011000000000000001`. Property-tested over 10,000 inputs. |
-| **Missing stays missing** | `null` renders as **"—"** with a tooltip "Missing: <reason>"; NM renders as **"NM"**. Number-typed props refuse `null`, so `?? 0` and `|| 0` on API values fail lint (`no-nullish-zero` custom rule plus grep test). |
-| **Clear basis** | Every statement value shows R / D / A. Draft values show in blue (banking "input" colour). Backend-calculated outputs show in near-black. |
-| **Immutable runs** | Run screens have no edit or delete controls. A test asserts there's no mutating request from any `/runs/*` page. |
-| **Sensitivity only from frozen runs** | The sensitivity route requires a run ID. There's no sensitivity on a draft or unsaved scenario. |
-| **Synthetic data labelled** | `SyntheticBanner` appears whenever `company.is_synthetic`, and in every screenshot. |
-| **Units on every figure** | Table headers carry `INR crores`. KPI tiles carry the unit. Percentages and multiples are suffixed (`%`, `x`). |
+| **No financial arithmetic in TypeScript** | `lib/format.ts` is the only number transformer (display only). An ESLint rule bans arithmetic on API financial fields outside `lib/`. A display-trace E2E test checks each displayed figure equals `format(apiValue)` on the Results, Runs, Sensitivity, Analysis and DCF screens. |
+| **Exact input parsing** | `lib/parse.ts` shifts the decimal point on the string and never divides. Property-tested. |
+| **Missing stays missing (R3)** | `null` renders as "—" with a reason tooltip; NM as "NM". Lint rule `no-nullish-zero` bans `?? 0` / `\|\| 0` on API values. Backend: no defaults on financial inputs, the engine's silent-zero test, and the new liquidity tests. |
+| **Basis on every value (R2)** | Every financial value component requires a `basis` prop. The UI renders R, D or A, and assumed inputs in blue. The backend provides basis on every value (B12). A component test fails if a value renders without a basis. |
+| **Immutable runs** | No mutating controls on `/runs/*`. A test asserts no mutating request is sent from those pages. |
+| **Sensitivity only from frozen runs on a matching engine (R1)** | The route requires a run. The backend enforces version and fingerprint (B3). Stored results stay viewable on any engine version. |
+| **Synthetic data labelled (R4)** | Banner whenever `is_synthetic`; also in the dashboard sample card and in screenshots. |
+| **Engine independence (R7)** | The purity test is unchanged and enforced: the new `presentation.py` and liquidity code are standard library only. |
 
 ---
 
-## 6. UI design direction
+## 7. UI design direction
 
-Institutional and data-dense: a modelling tool, not a marketing dashboard.
+The design is unchanged from revision 1, with the following added for D4-09.
 
 | Element | Specification |
 |---|---|
-| Palette | **Navy 900 `#0B1B33`** (left rail and header), **white** content canvas, **slate** greys for text, borders and table stripes (`#F8FAFC` / `#E2E8F0` / `#475569` / `#0F172A`), one **accent blue `#1F5FBF`** for interactive elements and user inputs. Status colours only for status: amber `#B7791F` warning, red `#B42318` error, green `#027A48` OK. **No red/green for negative/positive values**: negatives use parentheses. No gradients, no drop shadows beyond 1 px borders, no animations except a 150 ms fade on stale/loading. |
-| Typography | **Inter** with tabular figures (`font-variant-numeric: tabular-nums`) for the UI and numbers; **IBM Plex Mono** for hashes and codes. 13 px tables, 14 px body, 600-weight section headers, 11 px uppercase column labels. |
-| Numbers | Right-aligned, aligned decimals. Thousands separators. Negatives `(1,234.5)`. Percentages to 1 dp (`9.6%`), WACC to 2 dp, multiples `7.9x`, per-share to 2 dp, with full precision on hover. Missing `—`, NM `NM`. |
-| Tables | Compact rows (28 px). Sticky header and first column. Years as columns, oldest left. Historical and forecast columns separated by a vertical rule and a shaded "Forecast" header. Subtotal rows bold with a top border. |
-| Input cells | Blue text on a white cell with a thin blue underline. Unsaved draft cells get a faint blue background. Invalid cells get a red outline plus an inline message. |
-| Charts | Few series, slate and blue. Axes labelled with units. No 3D or pie charts. Small multiples instead of dual axes. EV composition as one stacked horizontal bar (PV of FCF vs PV of TV). The EV→equity bridge as a waterfall. The sensitivity grid as a heat-shaded **table**, not a chart. |
-| Layout | Desktop and laptop (minimum width 1280 px, comfortable at 1440+). Collapsible left rail. Content in a 12-column grid. KPI tiles are slim (label, value, unit), not oversized cards. |
-| Accessibility | WCAG AA contrast. Full keyboard navigation through tables and inputs. Visible focus rings. Status never conveyed by colour alone (an icon plus text as well). |
-
-**DCF workspace wireframe**
-
-```
-┌ DealForge ┬───────────────────────────────────────────────────────────────────────────────┐
-│ ▣ Dash    │ Ardent Precision (SYNTHETIC) › Ardent valuation › Base     INR crores  [Draft●] │
-│ ▣ Compan. │ ┌ Status: Draft has 2 unsaved changes   [Discard] [Save scenario] [Freeze run]┐ │
-│ ▣ Valuat. │ │ Drivers            FY23A  FY24A  FY25A │ FY26E  FY27E  FY28E  FY29E  FY30E   │ │
-│ ▣ Runs    │ │ Revenue growth       —    12.5%  11.1% │  8.0%   7.0%   6.0%   5.0%   4.0%   │ │
-│           │ │ EBITDA margin      19.0%  19.5%  20.0% │ 18.0%  18.5% ⚠35.0% 19.5%  20.0%   │ │
-│           │ │ …                                      │                                    │ │
-│           │ │ Output (backend)                       │                                    │ │
-│           │ │ Revenue            1,600  1,800  2,000 │ 2,160  2,311  …                    │ │
-│           │ │ UFCF                                   │ 181.2  205.6  …                    │ │
-│           │ └────────────────────────────────────────┴────────────────────────────────────┘ │
-│           │ WACC 9.60% │ g 2.50% │ EV 3,558.8 │ Equity 3,248.8 │ Value/share 31.22  [Results]│
-└───────────┴───────────────────────────────────────────────────────────────────────────────┘
-```
-
-Before any screen is built, milestone F1 delivers a **style-guide page**:
-- tokens, the type scale and number formats;
-- tables, inputs and badges;
-- one chart and the heat-shaded grid.
-
-It comes with screenshots for your approval.
+| Palette | Navy 900 `#0B1B33` rail and header; white canvas; slate greys; one accent blue `#1F5FBF` for interactive elements and **assumed inputs**. Status colours only for status (amber, red, green). Negatives in parentheses, never red/green. No gradients or decorative shadows. |
+| Typography | Inter with tabular figures; IBM Plex Mono for hashes and codes. 13 px tables, 14 px body. |
+| Basis badges | **R** slate outline · **D** slate filled · **A** blue outline. A legend sits in each table footer. |
+| Numbers | Right-aligned; thousands separators; `(1,234.5)`; `9.6%`; `7.9x`; full precision on hover; "—" missing; "NM". |
+| **≥ 1280 px** | Full layout: expanded left rail, side panels beside tables. |
+| **1024–1279 px** (D4-09) | Left rail collapses to icons with tooltips. Side panels move below the main content. KPI strip wraps to two rows. **Wide tables scroll horizontally inside their container** with a sticky first column and header, and the page itself never scrolls sideways. The DCF grid keeps the label column pinned. |
+| < 1024 px | Non-blocking notice ("DealForge is designed for desktop screens"). No mobile-first layout (LIM-24). |
+| First-time dashboard (R5) | One clear primary action, *Load the synthetic sample company*, with a short description of what it contains and a "SYNTHETIC – not real data" tag. A secondary *Create your own company* action. Then the 4-step checklist with server-derived progress. |
 
 ---
 
-## 7. Testing, error handling and acceptance criteria
+## 8. Testing, error handling and acceptance criteria
 
-| Layer | Tooling | Covers |
-|---|---|---|
-| Frontend unit | Vitest | `format.ts`: parentheses, NM, "—", units, % and x, rounding. `parse.ts`: string-exact %, property-tested. Error-envelope parsing. Token store and expiry. Debounce, cancel and stale logic. |
-| Component | Vitest + React Testing Library + **MSW** | Every screen in loading, empty, success, `validation`, `calculation`, `not_found` and 401 states. Missing values render "—", never 0. Basis badges and provenance popover. DCF edit → **the request body contains the exact numbers typed**. Freeze button disabled while pending or while the draft is dirty. No mutating calls from run pages. |
-| Fixtures | `scripts/record-fixtures` hits the **real** backend (sample company + KA-DCF-03) and saves the responses. A test fails if fixtures no longer validate against the generated OpenAPI types. | Mocks never contain invented numbers. |
-| E2E | **Playwright** against a real uvicorn server and a fresh SQLite database | Full journey: register → create company → upload CSV (broken file first) → commit → analysis → create scenario → edit a driver → value per share changes → save → freeze → run detail → verify identical → sensitivity base cell == run value → audit shows the LIM-12 warning. Session expiry and re-login restore the draft. |
-| Display trace | Playwright | Results, runs and sensitivity screens: each bound number equals the formatted API value. |
-| Accessibility | `@axe-core/playwright` | No serious or critical violations on any screen. |
-| Backend | pytest (existing 374 + new) | B1–B8 contract, access-control and integrity tests (section 4). |
-| CI | GitHub Actions | The existing Python matrix, plus a Node 22 job: `eslint`, `tsc --noEmit`, `vitest`, `vite build`, then Playwright with the backend started in the job. |
+### 8.1 New backend tests (in addition to the existing 374, which must stay green)
 
-**Phase 4 definition of done:**
-- all 8 screens are reachable and wired to the API, with no hardcoded financial outputs (verified by the display-trace and code-review checklist);
-- the E2E journey passes in CI;
-- the frontend type-checks with the generated types;
-- backend and frontend suites are green on CI;
-- screenshots of every screen are committed to `docs/screenshots/`;
-- the README has "run the whole app locally" instructions;
-- new limitations are added to the register.
+| Area | Tests |
+|---|---|
+| Liquidity (engine) | KA-LIQ-01…06. Hypothesis property test: ratios are MISSING whenever any required input is `None`, and never numeric. Explicit-zero cases. Sign rules for the new items. Purity test still green. |
+| Engine version guard | **Golden test:** the SHA-256 of the canonical KA-DCF-02 and KA-DCF-03 `result_json` is pinned together with `ENGINE_VERSION`. Changing the DCF output without a version bump fails, and so does bumping the version without updating the golden values (C1). |
+| Presentation | Margins equal hand calculations for KA-DCF-03; revenue ≤ 0 gives NM; stored `result_json` byte-identical and fingerprints unchanged after B5. |
+| Migration 0002 | Upgrade adds the columns and indexes. **Both immutability triggers still exist and still refuse UPDATE/DELETE after upgrade, and after downgrade → upgrade.** Existing runs keep their data. The schema matches the ORM (`compare_metadata` empty). |
+| Idempotency | Replay returns the same run with 200 and the replay header. Reused key with a different body → 409. Malformed key → validation. Keys are per user. **Concurrency: 8 threads post the same key at once against a file-based SQLite database; there is exactly 1 row and 1 audit event, and all 8 responses carry the same run ID and hash.** |
+| Draft preview | Zero database writes (probe). A draft equal to the saved scenario gives a byte-identical result to the saved preview. Draft validation errors. Other user's scenario → 404. |
+| Sensitivity | Base cell == stored run value. Scenario edited after freezing → grid unchanged. Monotonic in WACC and g. Invalid cells. **Engine mismatch → 409 while `GET /runs/{id}` still serves the stored result.** Corrupted inputs → 409. Limits. Isolation. |
+| Dashboard / onboarding | Exact counts. Onboarding steps flip as data is added. Recent companies resolved through every audit entity type. No raw `detail` leaks. Empty account. Isolation. |
+| Runs list | Pagination, filters, ordering, isolation, values identical to `GET /runs/{id}`, `engine_compatible` flag. |
+| Samples | Load gives a complete company with provenance on every value. **Preview equals the independent KA-DCF-03 result exactly.** Liquidity ratios equal KA-LIQ-01. Second load → 409 with the existing IDs. Atomic on injected failure. Isolation. |
+| Sources / completeness / basis | Source fields equal the import's. DCF group unchanged for the sample (complete). Liquidity group lists missing marketable securities when blank. PATCH without `basis` → validation. Market basis follows `market_source_id`. |
+| SPA fallback | `/api/v1/nope` → JSON 404, not HTML. Unauthenticated API → 401 JSON. `/companies/1/analysis` → `index.html`. Missing `/assets/x.js` → 404. `/openapi.json` and `/docs` unaffected. POST to an SPA path → 405. Fallback disabled when `dist` is absent. |
+| Response schemas | Every 200 response in the suite validates against its declared model. `docs/openapi.json` up to date (CI drift check). |
+
+### 8.2 Frontend tests
+
+These are the same as revision 1, plus:
+- **1024×768 and 1440×900 Playwright projects:** no page-level horizontal overflow (`scrollWidth ≤ innerWidth`); wide tables scroll inside their container with a sticky first column.
+- **Onboarding E2E:** new user → load sample → checklist updates step by step → freeze a run → sensitivity opens.
+- **Basis badge component test:** a value can't render without a basis.
+- **Engine-mismatch UI:** with a fixture of a run on another engine version, the results still render and the sensitivity screen shows the 409 explanation.
+- **Idempotency UI:** a double-click on Freeze sends one key, produces one run, and shows one success state.
+
+### 8.3 Phase 4 definition of done
+
+- All 8 screens and the first-time flow work against the real API.
+- No hardcoded financial outputs (display-trace and review checklist).
+- Backend suite green (374 existing plus new), frontend unit, component and E2E green on CI, OpenAPI drift check green.
+- Screenshots of every screen at 1440 px and key screens at 1024 px in `docs/screenshots/`.
+- README has instructions for running the whole application locally.
+- Limitations register updated (section 12).
 
 ---
 
-## 8. Milestone-wise implementation plan
+## 9. Milestone-wise implementation plan
 
-Each milestone ends with tests run, outputs verified, a list of files changed, limitations updated and a commit. Stops for review are marked ⏸.
+Each milestone ends with tests run, outputs verified, a list of files changed, the limitations register updated and a commit. **⏸ = I stop for your review.**
 
 | # | Milestone | Deliverables | Acceptance criteria |
 |---|---|---|---|
-| **F0** | Backend additions | B1–B8, response models, tests, regenerated OpenAPI | All new endpoint tests pass. Every 200 response validates against its schema. 374 existing tests unchanged and green. Stored run JSON byte-identical (B5). |
-| **F1** ⏸ | Frontend foundation and style guide | Vite/TS/Tailwind scaffold, design tokens, component kit, `format`/`parse` with tests, typed client, auth (login, register, logout, expiry, 401 handling), app shell, frontend CI job, **style-guide page and screenshots** | Lint, typecheck, unit tests and build green in CI. Login and expiry flows tested. **Style guide approved by you before F2.** |
-| F2 | Dashboard and companies | Dashboard (B1), companies list, create-company form | Counts and recent lists match the API. Empty state for a new user. Validation errors inline. |
-| F3 | Company workspace and import | Overview, completeness (B8), issues, provenance popover (B7), import wizard (dry run → errors table → commit or replace), manual correction, share instruments | A broken CSV shows row/column errors and can't be committed. Provenance popover shows file, SHA-256, row and column. "Mark missing" shows "—" everywhere. |
-| F4 | Financial analysis | Three statements with R/D/A badges, ratio tables, charts | Every ratio comes from `historical-analysis`. Liquidity section handled per D4-02. |
-| F5 ⏸ | DCF workspace | Scenario list/create/clone, driver grid, WACC and market panels, draft model, live preview (B4), LIM-12 cell flags, save, freeze | An edit produces an exact request body. The result updates within the debounce. Invalid input greys results as stale. Freeze is impossible with a dirty draft. **Review the demo flow before F6.** |
-| F6 | Valuation results | KPI strip, EV composition, bridge waterfall, dilution panel, dates panel, explanations | Display-trace test passes. Units on every figure. |
-| F7 | Saved runs | Global list (B2) with filters and pagination, run detail, verify button | Values identical to `GET /runs/{id}`. No mutating controls. Verify shows identical. |
-| F8 | Sensitivity | Grid (B3) for WACC × g and growth × margin, base outline, invalid cells, heat shading | Base cell == run value. A scenario edit after the freeze doesn't change the grid. |
-| F9 | Model audit | Grouped, filterable issue list from all sources, "why" catalogue, go-to links | Each issue category is reproducible from a fixture. Blocking missing inputs listed rather than shown as a failure. |
-| F10 ⏸ | Hardening and delivery | Full E2E journey, axe checks, screenshots, README run guide, limitations update, final report | Everything green in CI. Final report with screenshots, screen list, API status, test results, limitations and run instructions. |
+| **F0a** | Engine and data additions | Liquidity items, ratios and checks (B10); `presentation.py`; versioning-policy text and **golden guard test**; sample CSV liquidity rows; label clarification; updated Phase 3 test expectations (C4) | KA-LIQ-01…06 pass. KA-DCF-03 still 31.2150. Golden hashes unchanged. Purity green. No existing formula diff (`git diff` of formula functions empty). All 374 tests green (two expectation updates documented). |
+| **F0b** | Migration and idempotency | Migration `0002` (hand-written); idempotent freeze (B5); SQLite busy timeout; concurrency tests | Triggers survive upgrade and downgrade/upgrade. 8-thread test gives 1 run. Schema matches ORM. |
+| **F0c** | API additions | ORM-free input assembly (C2); B1–B4, B5 `context`/`presentation`, B7–B9, B11, B12; response models and committed `docs/openapi.json` (B6); CI drift check | All section 8.1 tests green. Every 200 response schema-valid. Draft preview has zero writes. |
+| **⏸ F0 review** | Backend report | Endpoint list, test results, sample demo transcript, limitations | **Your approval before frontend work.** |
+| **F1** ⏸ | Frontend foundation and style guide | Scaffold, tokens, component kit including basis badges, `format`/`parse`, typed client, auth flows, app shell (both breakpoints), frontend CI job, style-guide page with screenshots at 1440 and 1024 | CI green. Auth and expiry tested. **Style guide approved before F2.** |
+| F2 | Dashboard and first-time flow | Dashboard, onboarding panel, sample loader, companies list and create | New-user flow loads the sample in one click. Counts and checklist from the API. |
+| F3 | Company workspace and import | Overview, completeness groups, issues, provenance (values and derived metrics), import wizard, PATCH with basis, instruments | Broken CSV blocked with row/column errors. Provenance shows file, SHA-256, row and column. "Mark missing" shows "—". |
+| F4 | Financial analysis | Statements, ratio tables including **liquidity**, charts | All ratios from the API. KA-LIQ-01 values visible for the sample. Missing and NM rendered correctly. |
+| F5 ⏸ | DCF workspace | Draft model, live draft preview, LIM-12 flags, margins, save, clone, idempotent freeze | Exact request bodies. Zero-write preview (backend-verified). One run per click. **Demo-flow review.** |
+| F6 | Valuation results | KPIs, EV composition, bridge waterfall, dilution, dates, input provenance | Display-trace green. Units and basis on every figure. |
+| F7 | Saved runs | Global list, filters, pagination, detail, verify, engine-compatibility badges | Values identical to the stored results. No mutating controls. |
+| F8 | Sensitivity | Grids, base outline, invalid cells, heat shading, engine-mismatch state | Base == run. Post-freeze scenario edit has no effect. 409 handled with results still viewable. |
+| F9 | Model audit | All issue groups, "why" catalogue, go-to links | Each category reproduced from a fixture. |
+| F10 ⏸ | Hardening and delivery | Full E2E at both viewports, axe, screenshots, README run guide, limitations, final report | Everything green on CI. Final report. |
 
 ---
 
-## 9. Risks and unresolved decisions
+## 10. Decision record
 
-### Decisions needing your approval
+| ID | Decision | Outcome |
+|---|---|---|
+| D4-01 | Token storage | **Approved:** memory + `sessionStorage` for the development stage. HttpOnly/Secure/SameSite cookie + CSRF **required before public deployment** (LIM-20). |
+| D4-02 | Liquidity ratios | **Amended:** implement current, quick and cash ratios with 3 new line items, missing-aware formulas, zero-denominator NM and tests (section 5). |
+| D4-03 | Recently accessed | **Approved:** recently *active*, from audit events (LIM-26). |
+| D4-04 | Live recalculation | **Approved:** draft preview with no database or audit writes (B4). |
+| D4-05 | Engine mismatch | **Approved:** 409 for new sensitivity; stored results stay viewable and verifiable (R1). |
+| D4-06 | EBIT and UFCF margins | **Approved:** backend `presentation` block, outside `result_json` and the fingerprint. |
+| D4-07 | Serving | **Approved:** FastAPI same-origin, with SPA fallback that never intercepts `/api` (B11). |
+| D4-08 | Typed client | **Approved:** generated OpenAPI types plus a committed `openapi.json` with a drift check. |
+| D4-09 | Device support | **Amended:** target ≥ 1280 px; usable at 1024 px through a compact rail and in-table horizontal scrolling; no mobile-first. |
+| D4-10 | Freeze idempotency | **Approved:** backend-enforced, concurrency-safe, persisted (migration 0002). |
+| D4-11 | Sensitivity axes | **Approved:** generated by the backend around the frozen base. |
+| R1–R7 | Additional requirements | Incorporated: R1 → B3, B2 and §3.6; R2 → B12 and §6; R3 → §5 and §6; R4 → B9; R5 → B1, B9 and §7; R6 → B8; R7 → §6 and C1–C4. |
 
-| ID | Decision | Recommendation | Alternative and trade-off |
-|---|---|---|---|
-| D4-01 | Where the auth token lives | In memory, mirrored to `sessionStorage`. Strict CSP, no `innerHTML`, cleared on 401/logout/tab close. | **httpOnly SameSite=Strict cookie** plus a CSRF token: safer against XSS, but needs backend changes and a CSRF design. Recommended later for any public deployment (would become LIM-20). |
-| D4-02 | Liquidity ratios | Add `total_current_assets`, `total_current_liabilities` and (optional) `marketable_securities` to the item dictionary, plus engine metrics for current, quick and cash ratios (new `MISSING`-aware functions, tested; no change to existing formulas) | Defer and show a "Not available: requires current assets and liabilities" panel. Less work, but the Financial Analysis screen is incomplete. |
-| D4-03 | "Recently accessed companies" | Implement as **recently *active*** (latest audit event). Reads aren't tracked. | Track reads with a `last_viewed_at` write on every GET: more literal, but turns read endpoints into writes. |
-| D4-04 | Live recalculation | B4 draft preview (nothing saved) | Save-then-preview: no new endpoint, but writes and audit-logs every keystroke. |
-| D4-05 | Sensitivity on a run from an older engine version | **Refuse (409)** and explain; the user can re-freeze the scenario on the current engine | Compute and flag the version difference: more convenient, but breaks "same engine as the run". |
-| D4-06 | Display ratios not in the engine output (EBIT margin, UFCF margin) | B5 `presentation` block computed in Python, outside the frozen result | Omit these rows: simpler, but less informative. |
-| D4-07 | Production serving | FastAPI serves the built frontend (single origin, no CORS) | A separate static host plus CORS: more deployment options, more configuration and security surface. |
-| D4-08 | Typed client | `openapi-typescript` + `openapi-fetch`, with B6 response models | Hand-written types: no backend work, but drift risk. |
-| D4-09 | Device support | Desktop and laptop, ≥ 1280 px. Below that, a "use a larger screen" notice. | Full responsive or mobile: much more work for a modelling tool. |
-| D4-10 | Duplicate "Freeze run" | UI guard (disabled while pending, confirm dialog) **plus** an `Idempotency-Key` header stored on the run (small migration `0002`) | UI guard only: no migration, but a network retry could create two runs. |
-| D4-11 | Sensitivity axes | Server builds centred axes from `step` and `steps_each_side` | Client sends explicit value lists: more flexible, but the frontend would compute axis values. |
+---
 
-### Risks
+## 11. Conflicts with the engine and Phase 3, and their resolution
+
+| # | Conflict found in the current code | Resolution |
+|---|---|---|
+| **C1** | `version.py` says *"Bump on any change that can alter a numeric output"*. Adding liquidity metrics to the historical analysis would then force a bump, and under D4-05 **every existing run would immediately lose sensitivity**. | **Versioning policy clarified:** `ENGINE_VERSION` identifies the DCF result contract. It changes if, and only if, `run_dcf` could produce a different `result_json` (or fingerprint) for the same inputs. Additive analysis metrics and presentation fields don't change it. **The value stays `0.1.0`.** Enforced by the golden-hash guard test, which fails if DCF output changes without a bump. |
+| **C2** | `build_dcf_inputs` takes an ORM `Scenario`. Building a draft as a transient ORM object attached to a project would be **cascaded into the session and could autoflush an INSERT**, breaking D4-04. | Refactor into an ORM-free `assemble(...)` over plain dataclasses. Behaviour is unchanged: the existing preview, run and contract tests must pass unmodified, and a zero-write probe is added. |
+| **C3** | `alembic/env.py` uses `render_as_batch=True`, so an **autogenerated** 0002 would recreate `valuation_runs` and **silently drop both immutability triggers**. | 0002 is hand-written with native `ADD COLUMN` and `CREATE INDEX`. The downgrade recreates the triggers. Tests assert the triggers exist and work after upgrade and after a round trip. |
+| **C4** | Adding liquidity rows to the sample CSV changes two Phase 3 expectations: stored line items 84 → 93 (`test_import_persistence`) and dictionary size 29 → 32 (`test_financials_api`). The demo transcript and file SHA change too. | Expected and documented test updates, not formula changes. A new test proves the KA-DCF-03 tie (31.2150) is unchanged. The demo transcript is regenerated. |
+| **C5** | Provenance hard-codes the market share price as `basis: "reported"`, even when no source was given. | Basis is `reported` only with a `market_source_id`, otherwise `assumed`. Affects new runs only; stored runs are never rewritten. |
+| **C6** | `PATCH /line-items/{id}` keeps the item's previous basis, so an analyst-entered number can still be labelled *reported*, violating R2. | PATCH now **requires** `basis`. This is a **breaking change** to a Phase 3 contract. The three Phase 3 tests that patch line items (four PATCH calls, in `test_financials_api.py` and `test_valuation_api.py`) are updated, and `api-contract.md` records the change. |
+| C7 | Operating NWC and the new current-asset totals could be confused. | NWC is unchanged and documented as *operating*. Liquidity totals are separate items, and the label and definition text make the difference explicit. |
+| C8 | Concurrent freezes on SQLite could raise "database is locked" instead of the intended `IntegrityError` path. | Explicit `busy_timeout` and serialised writes, proven by the 8-thread test. |
+
+**No conflict with engine independence:** every engine addition is standard library only, the purity test is unchanged, and no existing formula function is edited.
+
+---
+
+## 12. New limitations and remaining risks
+
+### Limitations to add to `docs/limitations-register.md`
+
+| ID | Limitation | Status |
+|---|---|---|
+| LIM-20 | Auth token in memory + `sessionStorage` (exposed to XSS). **HttpOnly, Secure, SameSite cookie + CSRF required before public deployment.** | Planned (deployment blocker) |
+| LIM-21 | Sensitivity is refused for runs frozen under an older engine version; stored results stay viewable and verifiable. | Accepted |
+| LIM-22 | Rebuilding old runs depends on the `DcfInputs` schema; future schema changes need a versioned reader (`inputs_schema_version` stored from 0002). | Planned |
+| LIM-23 | Quick and cash ratios need marketable securities entered explicitly (0 if none); a blank makes them *missing*. | Accepted |
+| LIM-24 | Layouts below 1024 px are not supported (non-blocking notice). | Accepted |
+| LIM-25 | Idempotency keys are retained indefinitely (runs are immutable). | Accepted |
+| LIM-26 | "Recent companies" reflects writes (audit events), not views. | Accepted |
+
+### Remaining risks
 
 | Risk | Mitigation |
 |---|---|
-| Floating-point drift when parsing % inputs | String-based decimal shifting, property-tested (section 5) |
-| Live preview races (an old response arriving after a newer one) | TanStack Query cancellation, AbortController, and a request sequence check; stale overlay until the latest result returns |
-| Hidden arithmetic creeping into React | `format.ts` as the single transformation point, lint rules, display-trace E2E, review checklist |
-| OpenAPI types too loose (`dict[str, Any]` today) | B6 response models, with a test that every 200 response validates |
-| Engine version bump makes old runs' sensitivity unavailable (D4-05) | Clear 409 message; register entry; re-freeze path |
-| Recharts limits (waterfall, heat map) | Waterfall via the stacked-bar technique; heat map as a styled table |
-| Design quality is subjective | ⏸ style-guide approval at F1 and demo review at F5, before further screens |
-| Scope creep (comps, M&A screens) | The engine supports them but no API exposes them. **Out of Phase 4**, proposed for Phase 5. |
-| npm supply chain | Lockfile committed, exact versions, `npm ci` in CI, minimal dependency list |
-| CI time growth from Playwright | E2E runs one Chromium project, with test retries off and artefacts kept on failure |
+| Hidden arithmetic creeping into React | Single `format.ts`, lint rules, display-trace E2E, review checklist |
+| Float drift in input parsing | String-based parsing, property-tested |
+| Live preview races | Query cancellation, AbortController, sequence check, stale overlay |
+| OpenAPI or response drift | Committed `openapi.json`, CI drift check, response validation test |
+| Breaking PATCH change (C6) | Only internal clients exist today; recorded in `api-contract.md` |
+| SQLite-specific behaviour (triggers, locking) | Tests on SQLite now; PostgreSQL triggers and locking noted for the migration (LIM-18) |
+| Scope creep (comps and M&A screens) | Out of Phase 4; proposed for Phase 5 |
+| Design subjectivity | ⏸ style-guide approval at F1; demo review at F5 |
