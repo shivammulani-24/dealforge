@@ -1,4 +1,4 @@
-# DealForge Phase 4: professional financial analysis frontend (plan, revision 2)
+# DealForge Phase 4: professional financial analysis frontend (plan, revision 3)
 
 > **Status: PLAN REVISED AFTER REVIEW. Awaiting final approval before F0.** No Phase 4 code has
 > been written. Based on `main` at `2fd8299` (Phase 3 merged via PR #1).
@@ -7,6 +7,11 @@
 > and seven additional requirements (R1–R7). See [section 10](#10-decision-record) for the decision
 > record and [section 11](#11-conflicts-with-the-engine-and-phase-3-and-their-resolution) for
 > conflicts found in the Phase 3 code and how they are resolved.
+>
+> **Revision 3** adds the owner's nine amendments A1–A9 (section 10.1): the engine version covers
+> sensitivity as well as DCF semantics, golden sensitivity tests, a version-bump checklist,
+> enforced basis rules, a mandatory `Idempotency-Key`, the SQLite transaction and locking strategy,
+> and absolute plus percentage sensitivity changes.
 
 ## Contents
 
@@ -180,7 +185,7 @@ Legend: ✅ existing endpoint · 🆕 new or extended (B-numbers in section 4). 
 |---|---|
 | WACC × g grid; output EV, equity or value per share; growth-shift × margin-shift preset | 🆕 B3 `POST /runs/{id}/sensitivity` |
 | Base cell outlined, `base_matches_run: true` | 🆕 B3 |
-| Invalid cells with code; heat shading from backend `change_vs_base` | 🆕 B3 |
+| Invalid cells with code. Each cell shows the backend's **absolute change** (`change_abs`, in the output's units) and **percentage change** (`change_pct`, "NM" when the base is zero or negative). Heat shading uses `change_abs`, so it still works when the percentage is NM. | 🆕 B3 |
 | Run frozen under another engine version: grid refused, with an explanation and a "re-freeze on current engine" action; stored results stay fully viewable | 🆕 B3 409 + B2 `engine_compatible` flag |
 
 ### 3.7 Model audit (`/scenarios/:id/audit`, `/runs/:id/audit`)
@@ -272,9 +277,12 @@ All endpoints are owner-scoped: another user's resource returns 404, and lists f
   "row_variable": "wacc", "col_variable": "terminal_growth", "output": "value_per_share",
   "row_values": […], "col_values": […], "base_row": 3, "base_col": 3,
   "base_value": 31.2150…, "base_matches_run": true,
-  "cells": [[ { "value": 34.1…, "status": "ok", "codes": [], "change_vs_base": 0.0931… },
+  "cells": [[ { "value": 34.1…, "status": "ok", "codes": [],
+                "change_abs": 2.90…,
+                "change_pct": { "value": 0.0931…, "status": "ok", "reason": null } },
               { "value": null, "status": "invalid", "codes": ["TERMINAL_GROWTH_GE_WACC"],
-                "change_vs_base": null } ]] }
+                "change_abs": null,
+                "change_pct": { "value": null, "status": "missing", "reason": "cell invalid" } } ]] }
 ```
 
 **Integrity sequence (R1):**
@@ -282,10 +290,16 @@ All endpoints are owner-scoped: another user's resource returns 404, and lists f
 2. **If `run.engine_version != ENGINE_VERSION`: 409 `ENGINE_VERSION_MISMATCH`.** The message says the stored results are still available and suggests re-freezing (D4-05).
 3. Rebuild inputs **only** from `run.inputs_json` with the strict `DcfInputsIn` schema.
 4. **If `fingerprint(inputs) != run.input_hash`: 409 `RUN_INPUTS_CORRUPT`.**
-5. Build the axes with `engine.sensitivity.centered_axis(base, step, n)`. The base comes from the frozen result (WACC = `result.wacc`, g = `inputs.terminal_growth`, shift = 0, tax = `inputs.tax_rate`).
-6. Run the engine's `dcf_sensitivity`.
-7. **Assert the base cell `==` the run's stored output.** If it doesn't match, return 500 `BASE_MISMATCH`; this should be impossible after steps 2 and 4.
-8. Compute `change_vs_base = (v − base) / base` in a pure backend function. If `base == 0` it's `null` with reason NM.
+5. Call **one pure engine function**, `engine.sensitivity.frozen_run_grid(inputs, base_outputs, spec)` (A1). It does all the sensitivity arithmetic, so the engine version governs it:
+   - builds the axes with `centered_axis(base, step, n)`, taking the base from the frozen result (WACC = `result.wacc`, g = `inputs.terminal_growth`, shift = 0, tax = `inputs.tax_rate`);
+   - runs `dcf_sensitivity`;
+   - computes each cell's changes (A9):
+     - `change_abs = v − base`, in the output's units (currency, or currency per share);
+     - `change_pct = (v − base) / base` **only when `base > 0`**;
+     - when `base ≤ 0`, `change_pct` is NM with reason *"base value is zero or negative"* and `change_abs` is still given;
+     - invalid cells have both null.
+   The service layer does no sensitivity arithmetic; it only loads the run, checks it and calls the engine.
+6. **Assert the base cell `==` the run's stored output.** If it doesn't match, return 500 `BASE_MISMATCH`; this should be impossible after steps 2 and 4.
 
 - **Limits:** variables `wacc`, `terminal_growth`, `revenue_growth_shift`, `ebitda_margin_shift`, `capex_pct_shift`, `tax_rate`, with row ≠ col. `steps_each_side` 1..5. `step` from 0.0005 to 0.05 (tax 0.005 to 0.10). A violation returns `validation`.
 - **Persistence:** results aren't stored; they're deterministic in the frozen inputs.
@@ -309,17 +323,13 @@ All endpoints are owner-scoped: another user's resource returns 404, and lists f
   - `basis: "derived"`.
   - For stored runs it's computed on read from the stored `result_json`.
   - **It's never written into `result_json`**, so run fingerprints and stored results are byte-identical before and after this change (tested).
-- **`Idempotency-Key`** on `POST /scenarios/{id}/runs` (D4-10). Optional in the API; the frontend always sends one.
+- **`Idempotency-Key`** on `POST /scenarios/{id}/runs` (D4-10). **Mandatory (A7):** a request without the header is rejected with **422 `validation`** (`loc: ["header", "idempotency-key"]`, code `missing`). No run is created and the engine isn't called. 422 keeps the single error envelope; 428 was considered and rejected for consistency. The frontend generates a UUIDv4 per user action and reuses it when retrying that action.
   - **Format:** 8–128 characters of `[A-Za-z0-9_-]`; anything else is a `validation` error.
   - **First request:** 201 with the new run. The key is stored on the run with `request_fingerprint = sha256(canonical({"scenario_id", "label"}))`.
   - **Same user, same key, same fingerprint:** 200 with **the same run** and the header `Idempotent-Replayed: true`. No new row and no new audit event. This holds even if the scenario was edited in between, because the key identifies the request.
   - **Same user, same key, different scenario or label:** 409 `IDEMPOTENCY_KEY_REUSED`.
   - **Different users** with the same key are independent.
-  - **Concurrency:**
-    - the unique index `(created_by, idempotency_key)` arbitrates;
-    - each request computes, then INSERTs;
-    - on `IntegrityError` it rolls back, re-reads the winning row, compares fingerprints and returns it;
-    - SQLite's `busy_timeout` is set explicitly (5 s) so concurrent writers wait rather than fail.
+  - **Concurrency:** handled by the transaction and locking strategy in **section 4.14** (A8).
 
 ### 4.6 B6: typed response models and the OpenAPI document (D4-08)
 
@@ -380,6 +390,15 @@ op.create_index("uq_runs_owner_idempotency", "valuation_runs",
                 ["created_by", "idempotency_key"], unique=True)       # NULLs never collide
 op.create_index("ix_runs_owner_created", "valuation_runs", ["created_by", "created_at"])
 op.create_index("ix_audit_user_created", "audit_events", ["user_id", "created_at"])
+op.add_column("scenarios", sa.Column("market_rationale", sa.Text(), nullable=True))      # A5
+# A4–A6 basis triggers (raw SQL, SQLite), BEFORE INSERT and BEFORE UPDATE:
+#   line_items_basis_values        basis must be 'reported' or 'assumed'           (A6)
+#   line_items_reported_source     basis 'reported' ⇒ source kind ∈ qualifying set (A4)
+#   assumptions_basis_values       basis must be 'reported' or 'assumed'           (A6)
+#   assumptions_reported_source    basis 'reported' ⇒ source_id set, qualifying    (A4)
+#   assumptions_assumed_rationale  basis 'assumed'  ⇒ trim(rationale) <> ''        (A5)
+#   scenarios_market_rationale     share_price set, no market_source_id ⇒ rationale (A5)
+# WAL journal mode is set per connection (section 4.14), not by the migration.
 ```
 
 - **Native `ALTER TABLE … ADD COLUMN`, no batch recreate**, so the two immutability triggers on `valuation_runs` survive. `ADD COLUMN` isn't an `UPDATE`, so the triggers don't fire.
@@ -401,11 +420,77 @@ op.create_index("ix_audit_user_created", "audit_events", ["user_id", "created_at
 | Value | Basis rule |
 |---|---|
 | Imported line items | As chosen at import (`reported` / `assumed`), unchanged |
-| Manual corrections | **`PATCH /line-items/{id}` now requires `basis`** (`reported` if corrected to a filed figure, else `assumed`). Previously the old basis was kept, so an analyst-entered number could still say "reported" (C6). |
+| Manual corrections | **`PATCH /line-items/{id}` now requires `basis`**, either `reported` or `assumed`. `reported` requires a `source` object (the filing it was corrected to); `assumed` requires a `rationale`. Previously the old basis was kept, so an analyst-entered number could still say "reported" (C6). |
 | Historical metrics, liquidity ratios, DCF outputs, presentation margins, sensitivity cells | `derived`. Each metric object and each result block carries `"basis": "derived"`. |
-| Scenario assumptions | `assumed` (or as stored) |
-| Market inputs (share price, market-data date) | `reported` **only if `market_source_id` is set**, otherwise `assumed`. It's currently hard-coded as `reported` (C5). Affects provenance of **new** runs only; stored runs are never rewritten. |
+| Scenario assumptions | `assumed` with a rationale, or `reported` with a linked source (rules below) |
+| Market inputs (share price, market-data date) | `reported` **only if `market_source_id` links to a qualifying source**; otherwise `assumed`, and then `market_rationale` is required. It's currently hard-coded as `reported` (C5). Affects provenance of **new** runs only; stored runs are never rewritten. |
 | Base NWC | `derived`, with its components' provenance |
+
+**Basis enforcement rules (A4–A6).** Clients may only submit `reported` or `assumed`. `derived` exists only in values the backend computes.
+
+| Rule | Applies to | Enforced by |
+|---|---|---|
+| **A4. `reported` needs a linked source record.** The value's `source_id` must reference an existing source **owned by the user** whose `kind` is one of `csv_import`, `filing`, `market_data` or `synthetic`. A `manual` source can never back a `reported` value. | Line items (import, PATCH), assumptions, market inputs | (1) Pydantic: `reported` requires `source_id` (or a `source` object on PATCH, which creates a `filing` source). (2) Service: the source exists, is owned and is a qualifying kind; otherwise 422 `BASIS_SOURCE_REQUIRED` / `BASIS_SOURCE_KIND`. (3) **Database triggers** (migration 0002, section 4.10): `BEFORE INSERT/UPDATE` on `line_items` and `assumptions` raise if a `reported` row's source is missing or of another kind. |
+| **A5. `assumed` needs a rationale.** A non-blank `rationale` (trimmed, 1–2,000 characters). | Assumptions (`rationale`); line items imported with `basis=assumed` (a `rationale` form field, stored on the source and on each item's `note`); PATCH with `assumed` (`rationale`); market inputs without a source (`market_rationale`) | (1) Pydantic `model_validator` → 422 `validation` (`RATIONALE_REQUIRED`). (2) Database triggers on `assumptions` (`rationale`) and `scenarios` (`market_rationale` when `share_price` is set without `market_source_id`). |
+| **A6. `derived` can't be assigned manually.** | Every request body that carries a basis | (1) The schemas accept only `Literal["reported", "assumed"]`. `AssumptionIn` currently also accepts `"derived"`; that is removed (C12). (2) Database triggers reject `derived` on `line_items` and `assumptions`, because derived values are never stored as inputs. |
+
+- **Existing rows:** the triggers fire only on INSERT and UPDATE, so existing rows are never rewritten. Migration 0002 runs a **read-only pre-check** that lists any existing rows that would violate A4–A6, so they can be reviewed. (There is no production data yet; development databases can be rebuilt.)
+- **Creating sources:** B7 gains **`POST /sources`** (`{kind: "filing" | "market_data", title, uri?, reference?, notes?}`, owner-only), so analysts can link reported assumptions and market prices to a document. `csv_import` and `synthetic` sources are created by the system only.
+
+### 4.13 Engine version: scope and bump checklist (A1, A3)
+
+**Scope.** `ENGINE_VERSION` identifies the **valuation calculation contract**. It must change if, and only if, for some valid input, any of the following could change:
+
+1. **DCF results:** any field of the canonical `run_dcf` result JSON. This includes issue codes, severities, messages and their order, because they are part of `result_json`.
+2. **Input fingerprinting:** the canonical serialisation of `DcfInputs`, and therefore `input_hash`.
+3. **Frozen-input reconstruction:** how `inputs_json` is turned back into `DcfInputs` (`DcfInputsIn` → engine mapping).
+4. **Sensitivity semantics:**
+   - the supported variables and how each is applied;
+   - axis construction from `step` and `steps_each_side`;
+   - cell validity and error codes;
+   - output selection;
+   - the `change_abs` / `change_pct` definitions and NM rules;
+   - the base-match rule.
+
+Outside the scope, so **no bump**: historical-analysis metrics (including the liquidity ratios), presentation margins, LIM-12 driver warnings (computed outside `result_json`), the API envelopes and the UI.
+
+**Bump checklist.** Every step is required in the same pull request:
+1. **Classify** the change against the four scope items. If in doubt, treat it as in scope.
+2. **Bump** `ENGINE_VERSION`:
+   - **minor** (`0.1.0` → `0.2.0`) for any in-scope change;
+   - **major** only if frozen-input reconstruction (item 3) changes. That also needs an `inputs_schema_version` increment and a versioned reader that keeps old runs readable (LIM-22).
+3. **Update the golden tables:** DCF goldens (SHA-256 of the canonical KA-DCF-02 and KA-DCF-03 results) and sensitivity goldens (KA-SENS-01, KA-SENS-02 and the KA-DCF-03 grid hash, section 8.1). Add a new entry keyed by the new version and **keep the old entries** as history.
+4. **Explain every changed number:**
+   - regenerate `docs/verification/independent-verification.md`;
+   - record before and after values for every changed known answer in a new `docs/engine-changelog.md`, with the reason.
+5. **Run the full backend suite** on Python 3.12 and 3.13, and confirm that `POST /runs/{id}/verify` on a run from the old version reports `engine_version_changed: true` while still returning the stored results.
+6. **Update the limitations register** (LIM-21 impact) and write a release note: runs frozen under the old version keep their stored results and remain verifiable, but new sensitivity requests return 409 until the scenario is re-frozen.
+7. **Record the owner's approval** in the pull request before merging.
+
+**CI enforcement:** the golden test **fails** if any DCF or sensitivity golden value differs while `ENGINE_VERSION` is unchanged, or if `ENGINE_VERSION` has no golden entry. So an unannounced change in calculation semantics can't merge.
+
+### 4.14 SQLite transaction and locking strategy for freezes (A8)
+
+**Connection settings,** applied on every SQLite connection by an engine `connect` listener:
+- `PRAGMA foreign_keys = ON` (already on);
+- `PRAGMA busy_timeout = 5000`, so a writer waits up to 5 s for the lock instead of failing at once;
+- `PRAGMA journal_mode = WAL` on file databases, so readers never block the writer and the writer never blocks readers;
+- the pysqlite driver's implicit transaction handling is disabled (`isolation_level = None`), and SQLAlchemy's `begin` listener issues `BEGIN` explicitly. This is the documented SQLAlchemy recipe; pysqlite's default defers `BEGIN` and gives unreliable locking.
+- A **`write_transaction(immediate=True)`** context manager makes the `begin` listener issue **`BEGIN IMMEDIATE`** instead. That takes SQLite's RESERVED write lock at the start of the transaction, before any read inside it.
+
+**Freeze request sequence:**
+
+| Step | Lock held | Action |
+|---|---|---|
+| 1 | None | Validate the header, key format and body (422 on failure). |
+| 2 | Read (deferred transaction, WAL snapshot) | Owner check. **Fast replay path:** if `(user, key)` already exists, compare `request_fingerprint` and return 200 replay or 409 now. Otherwise load the scenario and statements, assemble the inputs and **run the engine. All computation happens outside the write lock** to keep it short. End the read transaction. |
+| 3 | **`BEGIN IMMEDIATE`** (RESERVED, writers serialised) | Re-check `(user, key)` **inside** the write transaction, because another request may have committed since step 2. If it now exists: compare fingerprints, `COMMIT` without writing, and return 200 replay or 409. Otherwise `INSERT` the run and its single audit event, then `COMMIT`. |
+| 4 | — | **Backstop:** the unique index `(created_by, idempotency_key)` stays in place. If an `IntegrityError` ever occurs (e.g. a writer outside this code path), roll back, re-read the winning row and return 200 replay or 409. |
+| 5 | — | **Lock timeout:** if `BEGIN IMMEDIATE` can't get the lock within `busy_timeout` (`SQLITE_BUSY`), return **503 `DATABASE_BUSY`** with `Retry-After: 1`. Nothing has been written, so the client retries **with the same key**, which is safe. |
+
+- **Consequence:** under any interleaving, exactly one row exists per `(user, key)`. Every concurrent request with the same key gets the same run (201 for the winner, 200 replays for the rest) or a clean 409/503, and never a duplicate.
+- **Other multi-row writes** use the same `write_transaction(immediate=True)`: sample load (B9), CSV commit, and scenario save.
+- **PostgreSQL later:** step 3 becomes `INSERT … ON CONFLICT (created_by, idempotency_key) DO NOTHING RETURNING id`, followed by a `SELECT` of the winner. This is noted against LIM-18.
 
 ---
 
@@ -511,12 +596,15 @@ The design is unchanged from revision 1, with the following added for D4-09.
 | Area | Tests |
 |---|---|
 | Liquidity (engine) | KA-LIQ-01…06. Hypothesis property test: ratios are MISSING whenever any required input is `None`, and never numeric. Explicit-zero cases. Sign rules for the new items. Purity test still green. |
-| Engine version guard | **Golden test:** the SHA-256 of the canonical KA-DCF-02 and KA-DCF-03 `result_json` is pinned together with `ENGINE_VERSION`. Changing the DCF output without a version bump fails, and so does bumping the version without updating the golden values (C1). |
+| Engine version guard (A1–A3) | **DCF goldens:** SHA-256 of the canonical KA-DCF-02 and KA-DCF-03 `result_json`, keyed by `ENGINE_VERSION`. **Sensitivity goldens:** KA-SENS-01, KA-SENS-02 and the SHA-256 of the canonical KA-DCF-03 7×7 WACC × g grid, keyed by `ENGINE_VERSION`. The test fails on any golden difference without a version bump, and on a version with no golden entry (section 4.13). |
+| **KA-SENS-01** (known answer, A2) | KA-DCF-02 inputs: UFCF 100 / 110 / 121 / 133.1 / 146.41, bridge −300 + 100 − 20, 100 shares, base WACC 10%, g 2%. Request: WACC step 0.005 × 1, g step 0.005 × 1, output value per share. Engine values must match an **independent exact (`Fraction`) recomputation** to 1e-12 relative; the values below are to 6 dp. **Rows WACC 9.5 / 10.0 / 10.5%; columns g 1.5 / 2.0 / 2.5%:** 9.5%: 14.207944 / 15.056602 / 16.026498 · 10.0%: 13.201070 / **13.936364** (base) / 14.769697 · 10.5%: 12.306780 / 12.948625 / 13.670701. Selected `change_abs`: +1.120239 (9.5%, 2.0%), −0.735294 (10.0%, 1.5%), −0.265663 (10.5%, 2.5%). Matching `change_pct`: +8.0382%, −5.2761%, −1.9063%. |
+| **KA-SENS-02** (NM rule, A9) | The same request on KA-DCF-02 with debt 2,000 instead of 300, so the base equity is negative: base value per share = (1,613.636364 − 2,000 + 100 − 20) / 100 = **−3.063636**. Every cell's `change_pct` is **NM** ("base value is zero or negative"). Every `change_abs` **equals KA-SENS-01's** (the bridge shift is constant), e.g. +1.120239 at (9.5%, 2.0%), and each value is KA-SENS-01's minus 17.0 (e.g. 15.056602 − 17 = −1.943398). A unit test also covers `base == 0` exactly. |
 | Presentation | Margins equal hand calculations for KA-DCF-03; revenue ≤ 0 gives NM; stored `result_json` byte-identical and fingerprints unchanged after B5. |
 | Migration 0002 | Upgrade adds the columns and indexes. **Both immutability triggers still exist and still refuse UPDATE/DELETE after upgrade, and after downgrade → upgrade.** Existing runs keep their data. The schema matches the ORM (`compare_metadata` empty). |
-| Idempotency | Replay returns the same run with 200 and the replay header. Reused key with a different body → 409. Malformed key → validation. Keys are per user. **Concurrency: 8 threads post the same key at once against a file-based SQLite database; there is exactly 1 row and 1 audit event, and all 8 responses carry the same run ID and hash.** |
+| Idempotency (A7, A8) | **Missing header → 422 and no row; the engine isn't called (spy).** Replay → 200, same run, replay header. Reused key with a different body → 409. Malformed key → validation. Keys are per user. **8 threads, same key** (file SQLite, WAL) → exactly 1 row, 1 audit event, and all responses carry the same run ID and hash (one 201, seven 200). **8 threads, different keys** → 8 rows. **Re-check inside `BEGIN IMMEDIATE`:** a test injects a competing commit between steps 2 and 3 and gets a replay, not a duplicate. **Lock timeout:** with `busy_timeout` set to 50 ms while another connection holds `BEGIN IMMEDIATE` → 503 `DATABASE_BUSY` and no row; retrying the same key afterwards gives exactly 1 run. WAL mode is active on file databases. Immutability triggers still enforced. |
+| Basis enforcement (A4–A6) | `reported` without a source, with another user's source, or with a `manual` source → 422, and the **database trigger** also rejects a direct `INSERT`. `assumed` without a rationale or with whitespace only → 422 and trigger rejection. `derived` in any request → 422 and trigger rejection. Market price without a source and without `market_rationale` → 422. `POST /sources` owner-only, allowed kinds only. Pre-check lists violating legacy rows without modifying them. |
 | Draft preview | Zero database writes (probe). A draft equal to the saved scenario gives a byte-identical result to the saved preview. Draft validation errors. Other user's scenario → 404. |
-| Sensitivity | Base cell == stored run value. Scenario edited after freezing → grid unchanged. Monotonic in WACC and g. Invalid cells. **Engine mismatch → 409 while `GET /runs/{id}` still serves the stored result.** Corrupted inputs → 409. Limits. Isolation. |
+| Sensitivity | `change_abs` and `change_pct` per section 4.3. All sensitivity arithmetic lives in the engine (the purity test covers `frozen_run_grid`). Base cell == stored run value. Scenario edited after freezing → grid unchanged. Monotonic in WACC and g. Invalid cells. **Engine mismatch → 409 while `GET /runs/{id}` still serves the stored result.** Corrupted inputs → 409. Limits. Isolation. |
 | Dashboard / onboarding | Exact counts. Onboarding steps flip as data is added. Recent companies resolved through every audit entity type. No raw `detail` leaks. Empty account. Isolation. |
 | Runs list | Pagination, filters, ordering, isolation, values identical to `GET /runs/{id}`, `engine_compatible` flag. |
 | Samples | Load gives a complete company with provenance on every value. **Preview equals the independent KA-DCF-03 result exactly.** Liquidity ratios equal KA-LIQ-01. Second load → 409 with the existing IDs. Atomic on injected failure. Isolation. |
@@ -550,8 +638,8 @@ Each milestone ends with tests run, outputs verified, a list of files changed, t
 
 | # | Milestone | Deliverables | Acceptance criteria |
 |---|---|---|---|
-| **F0a** | Engine and data additions | Liquidity items, ratios and checks (B10); `presentation.py`; versioning-policy text and **golden guard test**; sample CSV liquidity rows; label clarification; updated Phase 3 test expectations (C4) | KA-LIQ-01…06 pass. KA-DCF-03 still 31.2150. Golden hashes unchanged. Purity green. No existing formula diff (`git diff` of formula functions empty). All 374 tests green (two expectation updates documented). |
-| **F0b** | Migration and idempotency | Migration `0002` (hand-written); idempotent freeze (B5); SQLite busy timeout; concurrency tests | Triggers survive upgrade and downgrade/upgrade. 8-thread test gives 1 run. Schema matches ORM. |
+| **F0a** | Engine and data additions | Liquidity items, ratios and checks (B10); `presentation.py`; **`engine.sensitivity.frozen_run_grid` with `change_abs`/`change_pct`** (A1, A9); versioning-policy text, **bump checklist** and `docs/engine-changelog.md` stub (A3); **DCF and sensitivity golden tests including KA-SENS-01/02** (A2); sample CSV liquidity rows; sample JSON gains a rationale on every assumption and a `market_rationale` (A5, C9); label clarification; updated Phase 3 test expectations (C4) | KA-LIQ-01…06 and KA-SENS-01/02 pass against exact recomputation. KA-DCF-03 still 31.2150. Golden hashes unchanged at `0.1.0`. Purity green. No existing formula diff. All 374 tests green, with the documented expectation updates only. |
+| **F0b** | Migration, transactions and idempotency | Migration `0002` (hand-written: columns, indexes, **basis triggers**, pre-check); **SQLite connection settings and `write_transaction(immediate=True)`** (section 4.14); **mandatory** idempotent freeze (A7, A8); concurrency tests | Immutability and basis triggers work after upgrade and after downgrade/upgrade. Every idempotency and locking test in section 8.1 green. Schema matches ORM. Phase 3 suite green under the new transaction handling (C11). |
 | **F0c** | API additions | ORM-free input assembly (C2); B1–B4, B5 `context`/`presentation`, B7–B9, B11, B12; response models and committed `docs/openapi.json` (B6); CI drift check | All section 8.1 tests green. Every 200 response schema-valid. Draft preview has zero writes. |
 | **⏸ F0 review** | Backend report | Endpoint list, test results, sample demo transcript, limitations | **Your approval before frontend work.** |
 | **F1** ⏸ | Frontend foundation and style guide | Scaffold, tokens, component kit including basis badges, `format`/`parse`, typed client, auth flows, app shell (both breakpoints), frontend CI job, style-guide page with screenshots at 1440 and 1024 | CI green. Auth and expiry tested. **Style guide approved before F2.** |
@@ -584,13 +672,27 @@ Each milestone ends with tests run, outputs verified, a list of files changed, t
 | D4-11 | Sensitivity axes | **Approved:** generated by the backend around the frozen base. |
 | R1–R7 | Additional requirements | Incorporated: R1 → B3, B2 and §3.6; R2 → B12 and §6; R3 → §5 and §6; R4 → B9; R5 → B1, B9 and §7; R6 → B8; R7 → §6 and C1–C4. |
 
+### 10.1 Owner amendments in revision 3
+
+| ID | Amendment | Where it's specified |
+|---|---|---|
+| A1 | Engine version covers DCF **and** sensitivity semantics | §4.13 scope; §4.3 step 5 (all sensitivity arithmetic in the engine); C1 |
+| A2 | Known-answer sensitivity golden test | §8.1 KA-SENS-01, KA-SENS-02 and the KA-DCF-03 grid hash; F0a |
+| A3 | Explicit engine version-bump checklist | §4.13 checklist and CI enforcement |
+| A4 | `reported` basis needs a linked source record | §4.12 enforcement rules; `POST /sources`; DB triggers (§4.10) |
+| A5 | `assumed` basis needs a rationale | §4.12; `market_rationale` column (§4.10); C9 |
+| A6 | `derived` basis can't be assigned manually | §4.12; schema literals; DB triggers; C12 |
+| A7 | `Idempotency-Key` mandatory for freezes | §4.5 (422 when missing); C10 |
+| A8 | SQLite transaction and locking strategy | §4.14 (WAL, busy timeout, `BEGIN IMMEDIATE`, re-check, backstop, 503); C11 |
+| A9 | Absolute changes; percentage NM when base ≤ 0 | §4.3 response and step 5; §3.6; KA-SENS-02 |
+
 ---
 
 ## 11. Conflicts with the engine and Phase 3, and their resolution
 
 | # | Conflict found in the current code | Resolution |
 |---|---|---|
-| **C1** | `version.py` says *"Bump on any change that can alter a numeric output"*. Adding liquidity metrics to the historical analysis would then force a bump, and under D4-05 **every existing run would immediately lose sensitivity**. | **Versioning policy clarified:** `ENGINE_VERSION` identifies the DCF result contract. It changes if, and only if, `run_dcf` could produce a different `result_json` (or fingerprint) for the same inputs. Additive analysis metrics and presentation fields don't change it. **The value stays `0.1.0`.** Enforced by the golden-hash guard test, which fails if DCF output changes without a bump. |
+| **C1** | `version.py` says *"Bump on any change that can alter a numeric output"*. Adding liquidity metrics to the historical analysis would then force a bump, and under D4-05 **every existing run would immediately lose sensitivity**. | **Versioning policy clarified (A1):** `ENGINE_VERSION` identifies the **valuation calculation contract**, which covers DCF results, input fingerprinting, frozen-input reconstruction **and sensitivity semantics** (§4.13). Additive analysis metrics and presentation fields don't change it. **The value stays `0.1.0`**, because adding `frozen_run_grid` creates new sensitivity semantics with no prior version to differ from. Enforced by the DCF and sensitivity golden tests. |
 | **C2** | `build_dcf_inputs` takes an ORM `Scenario`. Building a draft as a transient ORM object attached to a project would be **cascaded into the session and could autoflush an INSERT**, breaking D4-04. | Refactor into an ORM-free `assemble(...)` over plain dataclasses. Behaviour is unchanged: the existing preview, run and contract tests must pass unmodified, and a zero-write probe is added. |
 | **C3** | `alembic/env.py` uses `render_as_batch=True`, so an **autogenerated** 0002 would recreate `valuation_runs` and **silently drop both immutability triggers**. | 0002 is hand-written with native `ADD COLUMN` and `CREATE INDEX`. The downgrade recreates the triggers. Tests assert the triggers exist and work after upgrade and after a round trip. |
 | **C4** | Adding liquidity rows to the sample CSV changes two Phase 3 expectations: stored line items 84 → 93 (`test_import_persistence`) and dictionary size 29 → 32 (`test_financials_api`). The demo transcript and file SHA change too. | Expected and documented test updates, not formula changes. A new test proves the KA-DCF-03 tie (31.2150) is unchanged. The demo transcript is regenerated. |
@@ -598,6 +700,11 @@ Each milestone ends with tests run, outputs verified, a list of files changed, t
 | **C6** | `PATCH /line-items/{id}` keeps the item's previous basis, so an analyst-entered number can still be labelled *reported*, violating R2. | PATCH now **requires** `basis`. This is a **breaking change** to a Phase 3 contract. The three Phase 3 tests that patch line items (four PATCH calls, in `test_financials_api.py` and `test_valuation_api.py`) are updated, and `api-contract.md` records the change. |
 | C7 | Operating NWC and the new current-asset totals could be confused. | NWC is unchanged and documented as *operating*. Liquidity totals are separate items, and the label and definition text make the difference explicit. |
 | C8 | Concurrent freezes on SQLite could raise "database is locked" instead of the intended `IntegrityError` path. | Explicit `busy_timeout` and serialised writes, proven by the 8-thread test. |
+
+| **C9** | A5 requires a rationale on every `assumed` value. The sample `ardent_base_scenario.json` has a rationale only on the revenue-growth rows and no `market_rationale`, and Phase 3 tests and the demo send these assumptions. | The sample JSON gains a rationale on every assumption and a `market_rationale` (data only; the numbers are unchanged, so the KA-DCF-03 tie holds). Tests that build assumptions inline add rationales. **Breaking change** for API clients that omit rationales, recorded in `api-contract.md`. |
+| **C10** | A7 makes `Idempotency-Key` mandatory. Every Phase 3 freeze call omits it: 8 call sites in total, 5 in `test_valuation_api.py`, 2 in `test_auth_and_access.py` and 1 in `scripts/demo_workflow.py`. | All callers send a key. A test proves the old call without a key now fails with 422 and creates nothing. **Breaking change**, recorded in `api-contract.md`. |
+| **C11** | A8 changes how every SQLite connection manages transactions (`isolation_level=None`, explicit `BEGIN`, WAL). That affects all Phase 3 code paths, not just freezes. | Applied in `db/session.py` only. **The entire Phase 3 suite must pass unchanged** as the acceptance check. WAL creates `-wal` and `-shm` files next to the database; `.gitignore` is updated. In-memory databases aren't used. |
+| **C12** | `AssumptionIn.basis` currently accepts `"derived"`, which violates A6. | The literal is narrowed to `"reported" | "assumed"`. Existing tests don't send `derived`; a new test proves it's rejected. |
 
 **No conflict with engine independence:** every engine addition is standard library only, the purity test is unchanged, and no existing formula function is edited.
 
@@ -616,6 +723,8 @@ Each milestone ends with tests run, outputs verified, a list of files changed, t
 | LIM-24 | Layouts below 1024 px are not supported (non-blocking notice). | Accepted |
 | LIM-25 | Idempotency keys are retained indefinitely (runs are immutable). | Accepted |
 | LIM-26 | "Recent companies" reflects writes (audit events), not views. | Accepted |
+| LIM-27 | Under heavy write contention SQLite can return 503 `DATABASE_BUSY` after 5 s. Clients retry with the same idempotency key, which is safe. | Accepted (SQLite stage) |
+| LIM-28 | Basis triggers apply to new and updated rows only. Legacy development rows are reported by the pre-check, not rewritten. | Accepted |
 
 ### Remaining risks
 
