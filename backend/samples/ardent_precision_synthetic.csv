@@ -27,4 +27,7 @@ non_operating_assets,35,38,40
 total_assets,1400,1550,1700
 total_liabilities,800,830,850
 total_equity,600,720,850
+total_current_assets,480,540,600
+total_current_liabilities,260,280,300
+marketable_securities,0,0,0
 basic_shares,100,100,100

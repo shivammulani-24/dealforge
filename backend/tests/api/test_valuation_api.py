@@ -31,7 +31,13 @@ def test_preview_reproduces_the_independent_ka_dcf03_answer(
     prov = r.json()["provenance"]
     assert prov["forecast.base_revenue"]["source_ref"].endswith("row 3, column FY2025")
     assert prov["forecast.base_nwc"]["basis"] == "derived"
-    assert prov["forecast.years[1].revenue_growth"]["rationale"] == "KA-DCF-03"
+    # C9: the rationale stored with the assumption is carried into provenance unchanged
+    expected = next(
+        a["rationale"]
+        for a in KA_DCF03_ASSUMPTIONS
+        if a["key"] == "revenue_growth" and a["year_index"] == 1
+    )
+    assert prov["forecast.years[1].revenue_growth"]["rationale"] == expected
     assert prov["dates"]["statement_date"] == "2025-03-31"
     assert prov["dates"]["market_data_date"] == "2025-04-30"
     codes = {w["code"] for w in r.json()["warnings"]}
@@ -162,8 +168,9 @@ def test_scenario_validation_clone_and_listing(client: TestClient, auth: dict[st
         json={
             "settings": KA_DCF03_SETTINGS,
             "assumptions": [
-                {"key": "revenue_growth", "year_index": 7, "value": 0.1},
-                {"key": "made_up", "year_index": None, "value": 1.0},
+                # rationales added per C9; the invalid year and key are what is being tested
+                {"key": "revenue_growth", "year_index": 7, "value": 0.1, "rationale": "test"},
+                {"key": "made_up", "year_index": None, "value": 1.0, "rationale": "test"},
             ],
         },
     )

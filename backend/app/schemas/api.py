@@ -6,6 +6,7 @@ from datetime import datetime
 from typing import Literal
 
 from pydantic import Field, model_validator
+from pydantic_core import PydanticCustomError
 
 from .common import IsoDate, Num, ResponseModel, StrictModel
 
@@ -100,13 +101,36 @@ class ProjectOut(ResponseModel):
     description: str | None
 
 
+MAX_RATIONALE = 2000
+
+
+def rationale_ok(text: str | None) -> bool:
+    return text is not None and 0 < len(text.strip()) <= MAX_RATIONALE
+
+
 class AssumptionIn(StrictModel):
     key: str
     year_index: int | None
     value: Num  # an assumption is always an explicit number
-    basis: Literal["assumed", "reported", "derived"] = "assumed"
+    # A6: clients may only submit "assumed" or "reported"; "derived" is computed, never entered.
+    basis: Literal["assumed", "reported"] = "assumed"
     source_id: int | None = None
     rationale: str | None = None
+
+    @model_validator(mode="after")
+    def _basis_rules(self) -> AssumptionIn:
+        # A5: an assumed value needs a rationale. A4: a reported value needs a linked source
+        # (its owner and kind are checked by the service and, from migration 0002, the database).
+        if self.basis == "assumed" and not rationale_ok(self.rationale):
+            raise PydanticCustomError(
+                "rationale_required",
+                "An assumed value needs a rationale (1–2,000 non-blank characters).",
+            )
+        if self.basis == "reported" and self.source_id is None:
+            raise PydanticCustomError(
+                "basis_source_required", "A reported value needs a linked source_id."
+            )
+        return self
 
 
 class ScenarioSettingsIn(StrictModel):

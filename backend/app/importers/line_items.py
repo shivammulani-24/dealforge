@@ -34,7 +34,7 @@ _DEFS = [
     ("adjusted_ebitda", "Adjusted EBITDA as reported", "memo", "EBITDA reconciliation"),
     ("cfo", "Cash flow from operations", "cash_flow", "historicals"),
     ("capex", "Capital expenditure", "cash_flow", "historicals"),
-    ("accounts_receivable", "Accounts receivable", "balance", "NWC"),
+    ("accounts_receivable", "Trade (accounts) receivable", "balance", "NWC, liquidity"),
     ("inventory", "Inventory", "balance", "NWC"),
     ("other_current_operating_assets", "Other operating current assets", "balance", "NWC"),
     ("accounts_payable", "Accounts payable", "balance", "NWC"),
@@ -44,7 +44,7 @@ _DEFS = [
         "balance",
         "NWC",
     ),
-    ("cash", "Cash and cash equivalents", "balance", "bridge"),
+    ("cash", "Cash and cash equivalents", "balance", "bridge, liquidity"),
     ("total_debt", "Total debt (excluding convertibles and leases)", "balance", "bridge, WACC"),
     ("lease_liabilities", "Lease liabilities", "balance", "bridge (if debt-like, D-09)"),
     ("preferred_equity", "Preferred equity", "balance", "bridge, WACC"),
@@ -59,6 +59,19 @@ _DEFS = [
     ("total_assets", "Total assets", "balance", "balance-sheet check"),
     ("total_liabilities", "Total liabilities", "balance", "balance-sheet check"),
     ("total_equity", "Total equity", "balance", "balance-sheet check"),
+    ("total_current_assets", "Total current assets", "balance", "liquidity ratios"),
+    (
+        "total_current_liabilities",
+        "Total current liabilities (incl. current debt and leases)",
+        "balance",
+        "liquidity ratios",
+    ),
+    (
+        "marketable_securities",
+        "Short-term marketable securities (not in cash; enter 0 if none)",
+        "balance",
+        "quick and cash ratios",
+    ),
     ("basic_shares", "Basic shares outstanding (same scale as money)", "equity", "value per share"),
 ]
 
@@ -96,3 +109,25 @@ BRIDGE_ITEMS = (
     "other_debt_like_claims",
     "non_operating_assets",
 )
+
+
+#: Completeness groups (Phase 4 plan §4.8), defined once. The "dcf" group is exactly the set of
+#: statement items the DCF already requires (unchanged); "liquidity" is separate so liquidity
+#: gaps never affect DCF completeness.
+REQUIRED_FOR: dict[str, tuple[str, ...]] = {
+    "dcf": (
+        "revenue",
+        "accounts_receivable",
+        "inventory",
+        "accounts_payable",
+        *BRIDGE_ITEMS,
+        "basic_shares",
+    ),
+    "liquidity": (
+        "total_current_assets",
+        "total_current_liabilities",
+        "cash",
+        "marketable_securities",
+        "accounts_receivable",
+    ),
+}

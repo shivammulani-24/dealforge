@@ -11,166 +11,193 @@
       "key": "revenue_growth",
       "year_index": 1,
       "value": 0.08,
-      "rationale": "KA-DCF-03"
+      "rationale": "Synthetic KA-DCF-03 case: growth decelerates from 8% to 4% as the business matures (history: 12.5% and 11.1%)."
     },
     {
       "key": "revenue_growth",
       "year_index": 2,
       "value": 0.07,
-      "rationale": "KA-DCF-03"
+      "rationale": "Synthetic KA-DCF-03 case: growth decelerates from 8% to 4% as the business matures (history: 12.5% and 11.1%)."
     },
     {
       "key": "revenue_growth",
       "year_index": 3,
       "value": 0.06,
-      "rationale": "KA-DCF-03"
+      "rationale": "Synthetic KA-DCF-03 case: growth decelerates from 8% to 4% as the business matures (history: 12.5% and 11.1%)."
     },
     {
       "key": "revenue_growth",
       "year_index": 4,
       "value": 0.05,
-      "rationale": "KA-DCF-03"
+      "rationale": "Synthetic KA-DCF-03 case: growth decelerates from 8% to 4% as the business matures (history: 12.5% and 11.1%)."
     },
     {
       "key": "revenue_growth",
       "year_index": 5,
       "value": 0.04,
-      "rationale": "KA-DCF-03"
+      "rationale": "Synthetic KA-DCF-03 case: growth decelerates from 8% to 4% as the business matures (history: 12.5% and 11.1%)."
     },
     {
       "key": "ebitda_margin",
       "year_index": 1,
-      "value": 0.18
+      "value": 0.18,
+      "rationale": "Synthetic KA-DCF-03 case: margin steps up 50bp a year from 18% to 20%, in line with the 19-20% achieved historically."
     },
     {
       "key": "ebitda_margin",
       "year_index": 2,
-      "value": 0.185
+      "value": 0.185,
+      "rationale": "Synthetic KA-DCF-03 case: margin steps up 50bp a year from 18% to 20%, in line with the 19-20% achieved historically."
     },
     {
       "key": "ebitda_margin",
       "year_index": 3,
-      "value": 0.19
+      "value": 0.19,
+      "rationale": "Synthetic KA-DCF-03 case: margin steps up 50bp a year from 18% to 20%, in line with the 19-20% achieved historically."
     },
     {
       "key": "ebitda_margin",
       "year_index": 4,
-      "value": 0.195
+      "value": 0.195,
+      "rationale": "Synthetic KA-DCF-03 case: margin steps up 50bp a year from 18% to 20%, in line with the 19-20% achieved historically."
     },
     {
       "key": "ebitda_margin",
       "year_index": 5,
-      "value": 0.2
+      "value": 0.2,
+      "rationale": "Synthetic KA-DCF-03 case: margin steps up 50bp a year from 18% to 20%, in line with the 19-20% achieved historically."
     },
     {
       "key": "da_pct_revenue",
       "year_index": 1,
-      "value": 0.04
+      "value": 0.04,
+      "rationale": "Synthetic KA-DCF-03 case: D&A held at the historical 4.0% of revenue."
     },
     {
       "key": "da_pct_revenue",
       "year_index": 2,
-      "value": 0.04
+      "value": 0.04,
+      "rationale": "Synthetic KA-DCF-03 case: D&A held at the historical 4.0% of revenue."
     },
     {
       "key": "da_pct_revenue",
       "year_index": 3,
-      "value": 0.04
+      "value": 0.04,
+      "rationale": "Synthetic KA-DCF-03 case: D&A held at the historical 4.0% of revenue."
     },
     {
       "key": "da_pct_revenue",
       "year_index": 4,
-      "value": 0.04
+      "value": 0.04,
+      "rationale": "Synthetic KA-DCF-03 case: D&A held at the historical 4.0% of revenue."
     },
     {
       "key": "da_pct_revenue",
       "year_index": 5,
-      "value": 0.04
+      "value": 0.04,
+      "rationale": "Synthetic KA-DCF-03 case: D&A held at the historical 4.0% of revenue."
     },
     {
       "key": "capex_pct_revenue",
       "year_index": 1,
-      "value": 0.05
+      "value": 0.05,
+      "rationale": "Synthetic KA-DCF-03 case: CapEx 5.0% falling to 4.5% of revenue, still above D&A in the final year."
     },
     {
       "key": "capex_pct_revenue",
       "year_index": 2,
-      "value": 0.05
+      "value": 0.05,
+      "rationale": "Synthetic KA-DCF-03 case: CapEx 5.0% falling to 4.5% of revenue, still above D&A in the final year."
     },
     {
       "key": "capex_pct_revenue",
       "year_index": 3,
-      "value": 0.045
+      "value": 0.045,
+      "rationale": "Synthetic KA-DCF-03 case: CapEx 5.0% falling to 4.5% of revenue, still above D&A in the final year."
     },
     {
       "key": "capex_pct_revenue",
       "year_index": 4,
-      "value": 0.045
+      "value": 0.045,
+      "rationale": "Synthetic KA-DCF-03 case: CapEx 5.0% falling to 4.5% of revenue, still above D&A in the final year."
     },
     {
       "key": "capex_pct_revenue",
       "year_index": 5,
-      "value": 0.045
+      "value": 0.045,
+      "rationale": "Synthetic KA-DCF-03 case: CapEx 5.0% falling to 4.5% of revenue, still above D&A in the final year."
     },
     {
       "key": "nwc_pct_revenue",
       "year_index": 1,
-      "value": 0.15
+      "value": 0.15,
+      "rationale": "Synthetic KA-DCF-03 case: operating NWC held at the historical 15% of revenue."
     },
     {
       "key": "nwc_pct_revenue",
       "year_index": 2,
-      "value": 0.15
+      "value": 0.15,
+      "rationale": "Synthetic KA-DCF-03 case: operating NWC held at the historical 15% of revenue."
     },
     {
       "key": "nwc_pct_revenue",
       "year_index": 3,
-      "value": 0.15
+      "value": 0.15,
+      "rationale": "Synthetic KA-DCF-03 case: operating NWC held at the historical 15% of revenue."
     },
     {
       "key": "nwc_pct_revenue",
       "year_index": 4,
-      "value": 0.15
+      "value": 0.15,
+      "rationale": "Synthetic KA-DCF-03 case: operating NWC held at the historical 15% of revenue."
     },
     {
       "key": "nwc_pct_revenue",
       "year_index": 5,
-      "value": 0.15
+      "value": 0.15,
+      "rationale": "Synthetic KA-DCF-03 case: operating NWC held at the historical 15% of revenue."
     },
     {
       "key": "tax_rate",
       "year_index": null,
-      "value": 0.25
+      "value": 0.25,
+      "rationale": "Synthetic KA-DCF-03 case: normalised 25% tax rate (D-05)."
     },
     {
       "key": "terminal_growth",
       "year_index": null,
-      "value": 0.025
+      "value": 0.025,
+      "rationale": "Synthetic KA-DCF-03 case: 2.5% long-run nominal growth, below the 4.5% risk-free rate."
     },
     {
       "key": "risk_free_rate",
       "year_index": null,
-      "value": 0.045
+      "value": 0.045,
+      "rationale": "Synthetic KA-DCF-03 case: 4.5% risk-free rate for the cash-flow currency."
     },
     {
       "key": "levered_beta",
       "year_index": null,
-      "value": 1.1
+      "value": 1.1,
+      "rationale": "Synthetic KA-DCF-03 case: levered beta of 1.1."
     },
     {
       "key": "equity_risk_premium",
       "year_index": null,
-      "value": 0.055
+      "value": 0.055,
+      "rationale": "Synthetic KA-DCF-03 case: 5.5% equity risk premium."
     },
     {
       "key": "pre_tax_cost_of_debt",
       "year_index": null,
-      "value": 0.07
+      "value": 0.07,
+      "rationale": "Synthetic KA-DCF-03 case: 7% pre-tax cost of debt."
     },
     {
       "key": "size_premium",
       "year_index": null,
-      "value": 0.0
+      "value": 0.0,
+      "rationale": "Synthetic KA-DCF-03 case: no size premium applied."
     }
   ]
 }

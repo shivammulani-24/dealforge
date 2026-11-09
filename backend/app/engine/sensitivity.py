@@ -13,6 +13,8 @@ from dataclasses import dataclass, replace
 from enum import StrEnum
 
 from .errors import Code, EngineError, error
+from .metrics import Metric, Status, nm, ok
+from .validation import Checker
 from .valuation import DcfInputs, DcfResult, run_dcf
 
 BASE_MATCH_TOLERANCE = 1e-12
@@ -178,4 +180,159 @@ def dcf_sensitivity(
         row_name=row.value,
         col_name=col.value,
         output=output.value,
+    )
+
+
+# ------------------------------------------------------------------------------------------
+# Frozen-run grids (Phase 4 plan §4.3, amendments A1 and A9). All sensitivity arithmetic for a
+# saved run lives here, so ENGINE_VERSION governs it: axis construction, cell evaluation,
+# absolute and percentage changes and the base-match rule.
+# ------------------------------------------------------------------------------------------
+
+#: (min step, max step) per variable; steps_each_side is limited to 1..MAX_STEPS_EACH_SIDE.
+STEP_LIMITS: dict[DcfVariable, tuple[float, float]] = {
+    DcfVariable.WACC: (0.0005, 0.05),
+    DcfVariable.TERMINAL_GROWTH: (0.0005, 0.05),
+    DcfVariable.REVENUE_GROWTH_SHIFT: (0.0005, 0.05),
+    DcfVariable.EBITDA_MARGIN_SHIFT: (0.0005, 0.05),
+    DcfVariable.CAPEX_PCT_SHIFT: (0.0005, 0.05),
+    DcfVariable.TAX_RATE: (0.005, 0.10),
+}
+MAX_STEPS_EACH_SIDE = 5
+
+
+@dataclass(frozen=True, slots=True)
+class AxisSpec:
+    variable: DcfVariable
+    step: float
+    steps_each_side: int
+
+
+@dataclass(frozen=True, slots=True)
+class FrozenBase:
+    """Outputs read from the run's stored result, used to anchor axes and verify the base."""
+
+    wacc: float
+    enterprise_value: float
+    equity_value: float
+    value_per_share: float
+
+    def output(self, which: DcfOutput) -> float:
+        return float(getattr(self, which.value))
+
+
+@dataclass(frozen=True, slots=True)
+class SensitivityCell:
+    value: float | None
+    status: str  # "ok" | "invalid"
+    codes: tuple[str, ...]
+    change_abs: float | None  # value − base, in the output's units
+    change_pct: Metric  # (value − base) / base; NM when base ≤ 0
+
+
+@dataclass(frozen=True, slots=True)
+class FrozenGrid:
+    row_variable: str
+    col_variable: str
+    output: str
+    row_values: tuple[float, ...]
+    col_values: tuple[float, ...]
+    base_row: int
+    base_col: int
+    base_value: float
+    base_matches_run: bool
+    cells: tuple[tuple[SensitivityCell, ...], ...]
+
+
+class BaseMismatchError(EngineError):
+    """The recomputed base cell differs from the stored run output (should be impossible)."""
+
+
+def change_vs_base(value: float | None, base: float) -> tuple[float | None, Metric]:
+    """Absolute and percentage change of one cell (A9).
+
+    The percentage is only meaningful for a positive base; for base ≤ 0 it is NM, while the
+    absolute change is still reported.
+    """
+    if value is None:
+        return None, Metric(None, Status.MISSING, "cell invalid")
+    diff = value - base
+    if base <= 0:
+        return diff, nm("base value is zero or negative")
+    return diff, ok(diff / base)
+
+
+def _validate_axis(c: Checker, name: str, axis: AxisSpec) -> None:
+    if not isinstance(axis.variable, DcfVariable):
+        c.error(Code.INVALID_AXIS, f"{name}.variable is not a supported variable.", name)
+        return
+    lo, hi = STEP_LIMITS[axis.variable]
+    c.in_range(f"{name}.step", axis.step, lo, hi)
+    if isinstance(axis.steps_each_side, bool) or not isinstance(axis.steps_each_side, int):
+        c.error(Code.INVALID_AXIS, f"{name}.steps_each_side must be an integer.", name)
+    elif not 1 <= axis.steps_each_side <= MAX_STEPS_EACH_SIDE:
+        c.error(
+            Code.INVALID_AXIS, f"{name}.steps_each_side must be 1..{MAX_STEPS_EACH_SIDE}.", name
+        )
+
+
+def _axis_base(inp: DcfInputs, base: FrozenBase, var: DcfVariable) -> float:
+    if var is DcfVariable.WACC:
+        return base.wacc
+    if var is DcfVariable.TERMINAL_GROWTH:
+        return inp.terminal_growth
+    if var is DcfVariable.TAX_RATE:
+        return inp.tax_rate
+    return 0.0
+
+
+def frozen_run_grid(
+    inp: DcfInputs, base: FrozenBase, row: AxisSpec, col: AxisSpec, output: DcfOutput
+) -> FrozenGrid:
+    """Two-way sensitivity of a frozen run. ``inp`` must be the run's frozen inputs and
+    ``base`` its stored outputs; the base cell must reproduce the stored output exactly."""
+    c = Checker()
+    _validate_axis(c, "row", row)
+    _validate_axis(c, "col", col)
+    if not isinstance(output, DcfOutput):
+        c.error(Code.INVALID_AXIS, "output is not supported.", "output")
+    c.raise_if_errors()
+    if row.variable is col.variable:
+        raise EngineError([error(Code.INVALID_AXIS, "Row and column variables must differ.")])
+
+    row_values = centered_axis(_axis_base(inp, base, row.variable), row.step, row.steps_each_side)
+    col_values = centered_axis(_axis_base(inp, base, col.variable), col.step, col.steps_each_side)
+    grid = dcf_sensitivity(inp, row.variable, row_values, col.variable, col_values, output)
+
+    stored = base.output(output)
+    matches = grid.base_value == stored
+    if not matches:
+        raise BaseMismatchError(
+            [
+                error(
+                    "BASE_MISMATCH",
+                    f"Recomputed base {grid.base_value!r} differs from stored {stored!r}.",
+                )
+            ]
+        )
+    cells = tuple(
+        tuple(
+            SensitivityCell(
+                cell.value, cell.status, cell.codes, *change_vs_base(cell.value, stored)
+            )
+            for cell in line
+        )
+        for line in grid.cells
+    )
+    return FrozenGrid(
+        row_variable=grid.row_variable,
+        col_variable=grid.col_variable,
+        output=grid.output,
+        row_values=grid.row_values,
+        col_values=grid.col_values,
+        base_row=grid.base_row,
+        base_col=grid.base_col,
+        base_value=stored,
+        base_matches_run=matches,
+        cells=cells,
     )

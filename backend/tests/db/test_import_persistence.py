@@ -50,7 +50,9 @@ def test_every_stored_value_has_provenance(session: Session) -> None:
     u, c = setup(session)
     commit_import(session, u, c, preview(SAMPLE.read_bytes()), basis="reported", replace=False)
     items = session.scalars(select(LineItem)).all()
-    assert len(items) == 3 * 28  # 28 item rows × 3 years; blank cells stored as NULL
+    assert (
+        len(items) == 3 * 31
+    )  # 31 item rows × 3 years (Phase 4 C4: +3 liquidity rows); NULLs kept
     src = session.scalars(select(Source)).one()
     assert src.kind == "csv_import" and src.file_sha256 and src.file_name == SAMPLE.name
     for li in items:

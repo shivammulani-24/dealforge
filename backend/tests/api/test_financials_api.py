@@ -176,4 +176,5 @@ def test_company_validation_and_duplicates(client: TestClient, auth: dict[str, s
         "scale",
         "fiscal_year_end_month",
     }
-    assert len(client.get("/api/v1/line-items", headers=auth).json()) == 28 + 1  # + adjusted
+    # 31 items in the sample file + adjusted_ebitda (Phase 4 C4: +3 liquidity items)
+    assert len(client.get("/api/v1/line-items", headers=auth).json()) == 31 + 1

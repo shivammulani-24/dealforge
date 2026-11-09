@@ -79,6 +79,27 @@ def passthrough(value: float | bool | None) -> Any:
     return value
 
 
+#: A4: source kinds that can back a "reported" value. "manual" never can.
+REPORTED_SOURCE_KINDS = frozenset({"csv_import", "filing", "market_data", "synthetic"})
+
+
+class BasisRuleViolation(ServiceError):
+    status = 422
+    code = "BASIS_SOURCE_KIND"
+
+
+def check_reported_source(session: Session, user: User, source_id: int, what: str) -> Source:
+    """A4: the source must exist, belong to the user and be of a qualifying kind."""
+    src = get_source(session, user, source_id)  # 404 when absent or not owned
+    if src.kind not in REPORTED_SOURCE_KINDS:
+        raise BasisRuleViolation(
+            f"{what}: a reported value needs a source of kind "
+            f"{sorted(REPORTED_SOURCE_KINDS)}; source {src.id} is '{src.kind}'.",
+            detail={"source_id": src.id, "kind": src.kind},
+        )
+    return src
+
+
 class InvalidAssumptions(ServiceError):
     status = 422
     code = "INVALID_ASSUMPTIONS"
@@ -146,8 +167,10 @@ def apply_scenario_payload(
     rows: list[dict[str, Any]],
 ) -> None:
     validate_assumption_rows(rows)
-    for r in rows:
-        if r.get("source_id") is not None:
+    for i, r in enumerate(rows):
+        if r.get("basis") == "reported":
+            check_reported_source(session, user, r["source_id"], f"assumptions[{i}]")
+        elif r.get("source_id") is not None:
             get_source(session, user, r["source_id"])
     if settings.get("market_source_id") is not None:
         get_source(session, user, settings["market_source_id"])

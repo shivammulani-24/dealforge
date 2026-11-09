@@ -41,6 +41,9 @@ MAGNITUDE_ITEMS = (
     "interest_expense",
     "total_assets",
     "total_liabilities",
+    "total_current_assets",
+    "total_current_liabilities",
+    "marketable_securities",
 )
 SIGNED_ITEMS = ("ebit", "pretax_income", "net_income", "cfo", "total_equity")
 
@@ -74,6 +77,9 @@ class HistoricalPeriod:
     total_assets: float | None = None
     total_liabilities: float | None = None
     total_equity: float | None = None
+    total_current_assets: float | None = None
+    total_current_liabilities: float | None = None
+    marketable_securities: float | None = None  # short-term; never included in ``cash``
     reported_ebitda: float | None = None
     adjusted_ebitda: float | None = None
     ebitda_adjustments: tuple[EbitdaAdjustment, ...] = ()
@@ -296,6 +302,9 @@ def analyze_historicals(
             p.ebit, p.interest_expense, num_name="ebit", den_name="interest_expense"
         )
 
+        # Liquidity (Phase 4, D4-02): missing-aware; NM when current liabilities are zero.
+        m.update(liquidity_ratios(p))
+
         # Consistency checks (warnings only, D-12)
         # LIM-13: D&A is part of operating costs, so it cannot exceed COGS + OpEx (both are
         # reported inclusive of embedded D&A). Missing inputs → the check is skipped and that
@@ -383,6 +392,7 @@ def analyze_historicals(
                     )
                 )
 
+        issues.extend(liquidity_checks(p, fy))
         issues.extend(rec.issues)
         analyses.append(PeriodAnalysis(p.fiscal_year, m, rec))
         prev_p, prev_m = p, m
@@ -392,3 +402,133 @@ def analyze_historicals(
 
 def historical_field_names() -> tuple[str, ...]:
     return tuple(f.name for f in fields(HistoricalPeriod))
+
+
+# ------------------------------------------------------------------------------------------
+# Liquidity (Phase 4 plan §5). Additive analysis metrics: outside the DCF and outside
+# ENGINE_VERSION's scope (docs/phase-4-plan.md §4.13).
+# ------------------------------------------------------------------------------------------
+
+LIQUIDITY_FORMULAS: dict[str, tuple[str, tuple[str, ...], tuple[str, ...]]] = {
+    # metric: (formula text, numerator items, denominator items)
+    "current_ratio": (
+        "total_current_assets / total_current_liabilities",
+        ("total_current_assets",),
+        ("total_current_liabilities",),
+    ),
+    "quick_ratio": (
+        "(cash + marketable_securities + accounts_receivable) / total_current_liabilities",
+        ("cash", "marketable_securities", "accounts_receivable"),
+        ("total_current_liabilities",),
+    ),
+    "cash_ratio": (
+        "(cash + marketable_securities) / total_current_liabilities",
+        ("cash", "marketable_securities"),
+        ("total_current_liabilities",),
+    ),
+}
+
+
+def _sum_required(p: HistoricalPeriod, names: tuple[str, ...]) -> Metric:
+    """Sum of items that must all be present; any absence makes the sum MISSING (never 0)."""
+    values = {n: getattr(p, n) for n in names}
+    absent = [n for n, v in values.items() if v is None]
+    if absent:
+        return missing(*absent)
+    return ok(sum(v for v in values.values() if v is not None))
+
+
+def liquidity_ratios(p: HistoricalPeriod) -> dict[str, Metric]:
+    """Current, quick (component method) and cash ratios.
+
+    The quick ratio never falls back to (current assets − inventory) / current liabilities:
+    a different definition must not be substituted silently (same rule as D-03 for EBITDA).
+    """
+    out: dict[str, Metric] = {}
+    for metric, (_, num_items, den_items) in LIQUIDITY_FORMULAS.items():
+        num = _sum_required(p, num_items)
+        den = _sum_required(p, den_items)
+        if not num.is_ok or not den.is_ok:
+            reasons = [m.reason for m in (num, den) if not m.is_ok and m.reason]
+            names = [r.removeprefix("missing input: ") for r in reasons]
+            out[metric] = missing(*names)
+            continue
+        out[metric] = safe_ratio(
+            num.value,
+            den.value,
+            num_name=" + ".join(num_items),
+            den_name="total current liabilities",
+        )
+    return out
+
+
+def liquidity_checks(p: HistoricalPeriod, fy: str) -> list[Issue]:
+    """Consistency of liquidity items (warnings). Partial sums use only the components that
+    are present; because every component is a non-negative magnitude, a partial sum is still a
+    valid lower bound, and the included components are listed in the message."""
+    issues: list[Issue] = []
+    liquidity_data_given = any(
+        getattr(p, n) is not None
+        for n in ("total_current_assets", "total_current_liabilities", "marketable_securities")
+    )
+    if p.total_current_assets is None and liquidity_data_given:
+        # Partial liquidity data: disclose the skipped check. A company with no liquidity
+        # items at all is reported by the completeness "liquidity" group instead.
+        issues.append(
+            info(
+                Code.LIQUIDITY_CHECK_SKIPPED,
+                f"{fy}: current-asset component check not performed; missing total_current_assets.",
+            )
+        )
+    elif p.total_current_assets is not None:
+        comp = {
+            n: getattr(p, n)
+            for n in (
+                "cash",
+                "marketable_securities",
+                "accounts_receivable",
+                "inventory",
+                "other_current_operating_assets",
+            )
+        }
+        present = {n: v for n, v in comp.items() if v is not None}
+        total = sum(present.values())
+        if (
+            present
+            and total > p.total_current_assets
+            and not approx_equal(total, p.total_current_assets)
+        ):
+            issues.append(
+                warning(
+                    Code.LIQUIDITY_COMPONENTS_EXCEED_CA,
+                    f"{fy}: {' + '.join(present)} = {total:,.2f} exceeds total current "
+                    f"assets {p.total_current_assets:,.2f}.",
+                )
+            )
+    if p.total_current_liabilities is not None:
+        comp_l = {
+            n: getattr(p, n) for n in ("accounts_payable", "other_current_operating_liabilities")
+        }
+        present_l = {n: v for n, v in comp_l.items() if v is not None}
+        total_l = sum(present_l.values())
+        if (
+            present_l
+            and total_l > p.total_current_liabilities
+            and not approx_equal(total_l, p.total_current_liabilities)
+        ):
+            issues.append(
+                warning(
+                    Code.OPERATING_PAYABLES_EXCEED_CL,
+                    f"{fy}: {' + '.join(present_l)} = {total_l:,.2f} exceeds total current "
+                    f"liabilities {p.total_current_liabilities:,.2f}.",
+                )
+            )
+    pairs = (
+        ("total_current_assets", "total_assets", Code.CURRENT_ASSETS_EXCEED_TOTAL),
+        ("total_current_liabilities", "total_liabilities", Code.CURRENT_LIABILITIES_EXCEED_TOTAL),
+    )
+    for part, whole, code in pairs:
+        a, b = getattr(p, part), getattr(p, whole)
+        if a is not None and b is not None and a > b and not approx_equal(a, b):
+            issues.append(warning(code, f"{fy}: {part} {a:,.2f} exceeds {whole} {b:,.2f}."))
+    return issues
