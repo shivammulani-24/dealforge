@@ -10,6 +10,7 @@ from typing import Any
 
 import pytest
 from fastapi.testclient import TestClient
+from schema_check import ResponseSchemaValidator
 
 from app.config import Settings
 from app.main import create_app
@@ -26,6 +27,7 @@ KA_DCF03_SETTINGS: dict[str, Any] = _SCENARIO["settings"]
 @pytest.fixture
 def client(tmp_path: Path) -> Iterator[TestClient]:
     app = create_app(Settings(database_url=f"sqlite:///{tmp_path / 'api.sqlite3'}"))
+    app.add_middleware(ResponseSchemaValidator)  # B6: every success body matches its model
     with TestClient(app) as c:
         yield c
     app.state.db_engine.dispose()

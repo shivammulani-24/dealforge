@@ -28,6 +28,18 @@ ERROR_TYPES: dict[type[ServiceError], str] = {
 }
 
 
+#: Fallback when no class mapping applies, so a 409 is never labelled "validation".
+STATUS_TYPES: dict[int, str] = {
+    401: "authentication",
+    404: "not_found",
+    405: "method_not_allowed",
+    409: "conflict",
+    422: "validation",
+    500: "internal",
+    503: "unavailable",
+}
+
+
 def _clean(value: Any) -> Any:
     if isinstance(value, dict):
         return {k: _clean(v) for k, v in value.items()}
@@ -66,7 +78,10 @@ def install(app: FastAPI) -> None:
 
     @app.exception_handler(ServiceError)
     async def _service(_: Request, exc: ServiceError) -> JSONResponse:
-        etype = next((t for cls, t in ERROR_TYPES.items() if isinstance(exc, cls)), "validation")
+        etype = next(
+            (t for cls, t in ERROR_TYPES.items() if isinstance(exc, cls)),
+            STATUS_TYPES.get(exc.status, "validation"),
+        )
         headers: dict[str, str] | None = None
         if isinstance(exc, Unauthorized):
             headers = {"WWW-Authenticate": "Bearer"}

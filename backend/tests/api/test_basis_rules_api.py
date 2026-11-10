@@ -22,6 +22,21 @@ def with_row(**kw: Any) -> list[dict[str, Any]]:
     return rows
 
 
+def manual_source(client: TestClient, h: dict[str, str], company: int) -> int:
+    """A genuinely 'manual' source: the one an assumed PATCH correction creates."""
+    fin = client.get(f"/api/v1/companies/{company}/financials", headers=h).json()
+    li = next(x for x in fin["periods"][-1]["line_items"] if x["item_code"] == "total_assets")
+    r = client.patch(
+        f"/api/v1/line-items/{li['id']}",
+        headers=h,
+        json={"value": li["value"], "basis": "assumed", "rationale": "restated"},
+    )
+    assert r.status_code == 200
+    src = client.get(f"/api/v1/sources/{r.json()['source_id']}", headers=h).json()
+    assert src["kind"] == "manual"
+    return int(src["id"])
+
+
 def test_assumed_requires_a_non_blank_rationale(client: TestClient, auth: dict[str, str]) -> None:
     sid = full_setup(client, auth)["scenario"]
     for bad in (None, "", "   ", "x" * 2001):
@@ -52,11 +67,9 @@ def test_reported_requires_a_qualifying_owned_source(
     ok = put(client, auth, sid, with_row(basis="reported", rationale=None, source_id=csv_source))
     assert ok.status_code == 200, ok.text
 
-    instruments_source = client.get(
-        f"/api/v1/companies/{ids['company']}/share-instruments", headers=auth
-    ).json()[0]["source_id"]  # kind manual (Phase 3)
+    manual_src = manual_source(client, auth, ids["company"])
     manual = put(
-        client, auth, sid, with_row(basis="reported", rationale=None, source_id=instruments_source)
+        client, auth, sid, with_row(basis="reported", rationale=None, source_id=manual_src)
     )
     assert manual.status_code == 422 and manual.json()["errors"][0]["code"] == "BASIS_SOURCE_KIND"
 
@@ -142,14 +155,12 @@ def test_market_price_needs_a_source_or_a_rationale(
     )
     assert r.status_code == 422 and r.json()["errors"][0]["code"] == "rationale_required"
 
-    instruments_source = client.get(
-        f"/api/v1/companies/{ids['company']}/share-instruments", headers=auth
-    ).json()[0]["source_id"]  # kind manual
+    manual_src = manual_source(client, auth, ids["company"])
     manual = client.put(
         f"/api/v1/scenarios/{sid}",
         headers=auth,
         json={
-            "settings": {**settings, "market_source_id": instruments_source},
+            "settings": {**settings, "market_source_id": manual_src},
             "assumptions": KA_DCF03_ASSUMPTIONS,
         },
     )

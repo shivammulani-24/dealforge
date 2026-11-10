@@ -12,3 +12,5 @@ dist/
 *.sqlite3
 .env
 *.egg-info/
+*.sqlite3-wal
+*.sqlite3-shm

@@ -155,4 +155,7 @@ LIM-07 single-year A/D, no PPA · LIM-08 advisory fees non-deductible · LIM-09 
 LIM-10 options all exercisable · LIM-11 float precision · LIM-12 forecast-vs-history warning
 (resolved) · LIM-13 D&A ≤ costs check (resolved) · LIM-14 no trapped-cash adjustment · LIM-15 Hamada not
 wired to peer betas · LIM-16 financial institutions out of scope · LIM-17 no FX conversion · LIM-18 SQLite-only
-immutability triggers · LIM-19 owner-only authorisation.
+immutability triggers · LIM-19 owner-only authorisation · LIM-20 token storage (deployment
+blocker) · LIM-21 no sensitivity across engine versions · LIM-22 versioned input reader · LIM-23
+explicit marketable securities · LIM-24 no layout below 1024 px · LIM-25 permanent idempotency
+keys · LIM-26 recent = active · LIM-27 SQLite busy 503 · LIM-28 legacy basis rows.

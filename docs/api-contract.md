@@ -146,3 +146,25 @@ rewritten; the migration's read-only pre-check lists any that violate the rules 
 **Non-breaking fix:** `created_at` on a run is now always rendered in UTC with an explicit offset
 (`…+00:00`). Previously a run read back from SQLite rendered without the offset, so the response
 to `POST …/runs` and a later `GET /runs/{id}` differed for the same run.
+
+## 8. Phase 4 F0 additions (non-breaking)
+
+| Endpoint | Purpose |
+|---|---|
+| `GET /dashboard` | Counts, onboarding progress, recent runs, recently active companies, activity summaries (no raw audit detail) |
+| `GET /runs?page&page_size&company_id&project_id&scenario_id` | All of the user's frozen runs, read verbatim from stored results, with `engine_compatible` |
+| `POST /runs/{id}/sensitivity` | Grid from the run's frozen inputs only; 409 `ENGINE_VERSION_MISMATCH` or `RUN_INPUTS_CORRUPT`; `change_abs` always, `change_pct` NM when the base ≤ 0 |
+| `POST /scenarios/{id}/preview` with a body | Draft preview: validated like a save; no database writes, no audit event (`"draft": true`) |
+| `GET /sources/{id}`, `POST /sources` | Source details; analysts create `filing` or `market_data` sources to back reported values |
+| `GET /samples`, `POST /samples/{id}/load` | The synthetic sample company, loaded atomically; 409 `SAMPLE_ALREADY_LOADED` with existing IDs |
+| Preview and run responses | New `context` (company, currency, scale), `presentation` (EBIT/UFCF margins, outside `result_json`), `result_basis`, `engine_compatible` |
+| `GET …/financials` | `completeness` per period (DCF group unchanged, separate liquidity group) |
+| `GET …/historical-analysis` | `basis: "derived"` on every metric; `metric_definitions` (formula, items, NM rule); liquidity ratios |
+| Production | With `DEALFORGE_FRONTEND_DIST` set, the built frontend is served from the same origin; `/api`, `/docs`, `/redoc`, `/openapi.json` are never intercepted |
+
+**Response schemas (B6):** every frontend-facing route documents its success body in OpenAPI.
+`docs/openapi.json` is committed and checked in CI (`scripts/export_openapi.py --check`). In the
+test suite, every successful response is validated against its declared model in strict JSON mode
+(no coercion, no unknown fields), and a test exercises all 26 documented routes.
+`error_type` now falls back to the HTTP status (409 → `conflict`, 503 → `unavailable`, 500 →
+`internal`), so a conflict is never labelled `validation`.

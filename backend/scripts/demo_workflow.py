@@ -176,6 +176,57 @@ def main(base: str) -> None:
     v = check(api.post(f"/runs/{run['id']}/verify"), 200)
     print(json.dumps(v, indent=2))
     ok = v["identical"] and v["input_hash_matches"] and v["inputs_round_trip_exact"]
+
+    step(8, "Replay the freeze with the same Idempotency-Key")
+    replay = api.post(
+        f"/scenarios/{scen['id']}/runs",
+        json={"label": "Phase 3 demo run"},
+        headers={"Idempotency-Key": key},
+    )
+    print(
+        f"HTTP {replay.status_code}, Idempotent-Replayed: "
+        f"{replay.headers.get('idempotent-replayed')}, same run: "
+        f"{replay.json()['id'] == run['id']}"
+    )
+    ok = ok and replay.status_code == 200 and replay.json()["id"] == run["id"]
+
+    step(9, "Sensitivity of the frozen run (WACC × terminal growth)")
+    grid = check(
+        api.post(
+            f"/runs/{run['id']}/sensitivity",
+            json={
+                "row": {"variable": "wacc", "step": 0.005, "steps_each_side": 1},
+                "col": {"variable": "terminal_growth", "step": 0.005, "steps_each_side": 1},
+                "output": "value_per_share",
+            },
+        ),
+        200,
+    )
+    print("value per share (INR); rows WACC, columns g; base cell outlined by [ ]")
+    print("            " + "".join(f"g {g:6.2%}         " for g in grid["col_values"]))
+    for i, (w, line) in enumerate(zip(grid["row_values"], grid["cells"], strict=True)):
+        cells = []
+        for j, c in enumerate(line):
+            txt = f"{c['value']:.4f} ({c['change_pct']['value']:+.1%})"
+            cells.append(
+                f"[{txt}]" if (i, j) == (grid["base_row"], grid["base_col"]) else f" {txt} "
+            )
+        print(f"WACC {w:7.4%} " + "  ".join(cells))
+    print("base matches the frozen run:", grid["base_matches_run"])
+    ok = ok and grid["base_matches_run"]
+
+    step(10, "Saved runs across all companies, and the dashboard")
+    page = check(api.get("/runs?page=1&page_size=10"), 200)
+    for it in page["items"]:
+        print(
+            f"run {it['id']}  {it['company']['name']} / {it['scenario']['name']}  "
+            f"valuation date {it['valuation_date']}  engine {it['engine_version']}  "
+            f"{it['value_per_share']:.4f} per share  {it['input_hash'][:19]}…"
+        )
+    d = check(api.get("/dashboard"), 200)
+    print("counts:", d["counts"], " onboarding complete:", d["onboarding"]["complete"])
+    print("latest activity:", d["recent_activity"][0]["summary"])
+
     print("\nRESULT:", "IDENTICAL — workflow verified" if ok else "MISMATCH")
     raise SystemExit(0 if ok else 1)
 

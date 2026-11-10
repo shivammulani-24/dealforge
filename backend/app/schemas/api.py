@@ -206,3 +206,57 @@ class LineItemPatchIn(StrictModel):
                 "rationale_required", "An assumed correction needs a rationale."
             )
         return self
+
+
+SensitivityVariable = Literal[
+    "wacc",
+    "terminal_growth",
+    "revenue_growth_shift",
+    "ebitda_margin_shift",
+    "capex_pct_shift",
+    "tax_rate",
+]
+
+
+class AxisIn(StrictModel):
+    variable: SensitivityVariable
+    step: Num
+    steps_each_side: int = Field(ge=1, le=5)
+
+    @model_validator(mode="after")
+    def _step_within_limits(self) -> AxisIn:
+        # The engine's own limits (STEP_LIMITS), checked here so a bad request is a
+        # `validation` error before any computation; the engine checks again.
+        from app.engine.sensitivity import STEP_LIMITS, DcfVariable
+
+        lo, hi = STEP_LIMITS[DcfVariable(self.variable)]
+        if not lo <= self.step <= hi:
+            raise PydanticCustomError(
+                "step_out_of_range",
+                "step for {variable} must be between {lo} and {hi}",
+                {"variable": self.variable, "lo": lo, "hi": hi},
+            )
+        return self
+
+
+class SensitivityIn(StrictModel):
+    row: AxisIn
+    col: AxisIn
+    output: Literal["value_per_share", "enterprise_value", "equity_value"]
+
+    @model_validator(mode="after")
+    def _distinct_axes(self) -> SensitivityIn:
+        if self.row.variable == self.col.variable:
+            raise PydanticCustomError("same_variable", "row and col must use different variables")
+        return self
+
+
+class SourceIn(StrictModel):
+    """Analysts can create document sources to back reported values (A4). csv_import and
+    synthetic sources are created by the system only."""
+
+    kind: Literal["filing", "market_data"]
+    title: str = Field(min_length=1, max_length=300)
+    uri: str | None = Field(default=None, max_length=1000)
+    reference: str | None = Field(default=None, max_length=300)
+    notes: str | None = Field(default=None, max_length=2000)

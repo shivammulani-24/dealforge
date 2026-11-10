@@ -3,16 +3,25 @@ from __future__ import annotations
 import json
 from typing import Annotated, Any
 
-from fastapi import APIRouter, Header, Request, status
+from fastapi import APIRouter, Body, Header, Request, status
 from fastapi.responses import JSONResponse
 from sqlalchemy import select
 
 from app.api.deps import SessionDep, UserDep
 from app.db.models import Scenario, ValuationProject, ValuationRun, iso_utc
 from app.engine.hashing import canonical_json
+from app.engine.valuation import DcfResult as DcfResult
 from app.engine.valuation import run_dcf
 from app.schemas.api import CloneIn, ProjectIn, ProjectOut, RunIn, ScenarioIn, ScenarioUpdateIn
 from app.schemas.dcf import DcfInputsIn
+from app.schemas.responses import (
+    PreviewOut,
+    RunOut,
+    ScenarioOut,
+    ScenarioRunOut,
+    VerifyOut,
+    documented,
+)
 from app.services import valuations as svc
 from app.services.errors import Conflict
 from app.services.financials import get_company
@@ -55,7 +64,11 @@ def _scenario_out(s: Scenario) -> dict[str, Any]:
     }
 
 
-@router.post("/projects/{project_id}/scenarios", status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/projects/{project_id}/scenarios",
+    status_code=status.HTTP_201_CREATED,
+    responses=documented(ScenarioOut, 201),
+)
 def create_scenario(
     project_id: int, body: ScenarioIn, session: SessionDep, user: UserDep
 ) -> dict[str, Any]:
@@ -75,17 +88,17 @@ def create_scenario(
     return _scenario_out(s)
 
 
-@router.get("/projects/{project_id}/scenarios")
+@router.get("/projects/{project_id}/scenarios", responses=documented(list[ScenarioOut]))
 def list_scenarios(project_id: int, session: SessionDep, user: UserDep) -> list[dict[str, Any]]:
     return [_scenario_out(s) for s in svc.get_project(session, user, project_id).scenarios]
 
 
-@router.get("/scenarios/{scenario_id}")
+@router.get("/scenarios/{scenario_id}", responses=documented(ScenarioOut))
 def get_scenario(scenario_id: int, session: SessionDep, user: UserDep) -> dict[str, Any]:
     return _scenario_out(svc.get_scenario(session, user, scenario_id))
 
 
-@router.put("/scenarios/{scenario_id}")
+@router.put("/scenarios/{scenario_id}", responses=documented(ScenarioOut))
 def update_scenario(
     scenario_id: int, body: ScenarioUpdateIn, session: SessionDep, user: UserDep
 ) -> dict[str, Any]:
@@ -101,7 +114,11 @@ def update_scenario(
     return _scenario_out(s)
 
 
-@router.post("/scenarios/{scenario_id}/clone", status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/scenarios/{scenario_id}/clone",
+    status_code=status.HTTP_201_CREATED,
+    responses=documented(ScenarioOut, 201),
+)
 def clone_scenario(
     scenario_id: int, body: CloneIn, session: SessionDep, user: UserDep
 ) -> dict[str, Any]:
@@ -125,9 +142,27 @@ def clone_scenario(
     return _scenario_out(s)
 
 
-@router.post("/scenarios/{scenario_id}/preview")
-def preview(scenario_id: int, session: SessionDep, user: UserDep) -> dict[str, Any]:
-    return svc.preview(session, svc.get_scenario(session, user, scenario_id))
+@router.post("/scenarios/{scenario_id}/preview", responses=documented(PreviewOut))
+def preview(
+    scenario_id: int,
+    session: SessionDep,
+    user: UserDep,
+    draft: Annotated[ScenarioUpdateIn | None, Body()] = None,
+) -> dict[str, Any]:
+    """Without a body: the saved scenario. With ``{settings, assumptions}``: an unsaved draft,
+    validated like a save but never written (no rows, no audit event; D4-04)."""
+    scenario = svc.get_scenario(session, user, scenario_id)
+    if draft is None:
+        return svc.preview(session, scenario)
+    result = svc.draft_preview(
+        session,
+        user,
+        scenario,
+        draft.settings.model_dump(),
+        [a.model_dump() for a in draft.assumptions],
+    )
+    session.rollback()  # belt and braces: the draft path never adds anything to the session
+    return result
 
 
 IDEMPOTENCY_KEY_PATTERN = r"^[A-Za-z0-9_-]+$"
@@ -137,9 +172,11 @@ IDEMPOTENCY_KEY_PATTERN = r"^[A-Za-z0-9_-]+$"
     "/scenarios/{scenario_id}/runs",
     status_code=status.HTTP_201_CREATED,
     responses={
+        201: {"model": RunOut, "description": "The new frozen run."},
         200: {
+            "model": RunOut,
             "description": "Replay: this Idempotency-Key already froze this request; the "
-            "same run is returned (header Idempotent-Replayed: true)."
+            "same run is returned (header Idempotent-Replayed: true).",
         },
         409: {"description": "IDEMPOTENCY_KEY_REUSED: the key was used for another request."},
         503: {"description": "DATABASE_BUSY: nothing saved; retry with the same key."},
@@ -171,14 +208,16 @@ def create_run(
         body.label,
         idempotency_key,
     )
+    stored = session.get(ValuationRun, run.id)  # re-read: the write session's object is detached
+    assert stored is not None
     return JSONResponse(
         status_code=status.HTTP_200_OK if replayed else status.HTTP_201_CREATED,
-        content=svc.run_payload(run),
+        content=svc.run_payload(stored),
         headers={"Idempotent-Replayed": "true"} if replayed else None,
     )
 
 
-@router.get("/scenarios/{scenario_id}/runs")
+@router.get("/scenarios/{scenario_id}/runs", responses=documented(list[ScenarioRunOut]))
 def list_runs(scenario_id: int, session: SessionDep, user: UserDep) -> list[dict[str, Any]]:
     s = svc.get_scenario(session, user, scenario_id)
     rows = session.scalars(
@@ -197,17 +236,17 @@ def list_runs(scenario_id: int, session: SessionDep, user: UserDep) -> list[dict
     ]
 
 
-@router.get("/runs/{run_id}")
+@router.get("/runs/{run_id}", responses=documented(RunOut))
 def get_run(run_id: int, session: SessionDep, user: UserDep) -> dict[str, Any]:
     return svc.run_payload(svc.get_run(session, user, run_id))
 
 
-@router.post("/runs/{run_id}/verify")
+@router.post("/runs/{run_id}/verify", responses=documented(VerifyOut))
 def verify_run(run_id: int, session: SessionDep, user: UserDep) -> dict[str, Any]:
     return svc.verify_run(svc.get_run(session, user, run_id))
 
 
-@router.post("/calculate/dcf")
+@router.post("/calculate/dcf", responses=documented(DcfResult))
 def calculate_dcf(body: DcfInputsIn, user: UserDep) -> dict[str, Any]:
     """Stateless DCF: exactly the engine's result for exactly these inputs. Nothing is saved."""
     result = run_dcf(body.to_engine())

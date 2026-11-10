@@ -24,4 +24,5 @@ jobs:
       - run: ruff check .
       - run: ruff format --check .
       - run: mypy
+      - run: python scripts/export_openapi.py --check
       - run: pytest --cov --cov-report=term-missing

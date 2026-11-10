@@ -29,7 +29,11 @@ def commit_import(
     basis: str,
     replace: bool,
     rationale: str | None = None,
+    source_kind: str = "csv_import",
+    commit: bool = True,
 ) -> list[FinancialPeriod]:
+    """Persist a clean preview. ``source_kind="synthetic"`` is used only by the sample loader;
+    ``commit=False`` lets a caller include the import in a larger atomic transaction."""
     if not preview.ok:
         raise ImportRejected(
             f"Import has {len(preview.errors)} error(s); fix the file and preview again.",
@@ -52,8 +56,10 @@ def commit_import(
 
     source = Source(
         owner_id=user.id,
-        kind="csv_import",
-        title=f"CSV import: {preview.file_name}",
+        kind=source_kind,
+        title=f"CSV import: {preview.file_name}"
+        if source_kind == "csv_import"
+        else f"Synthetic sample data: {preview.file_name}",
         file_name=preview.file_name,
         file_sha256=preview.file_sha256,
         notes=f"currency {preview.currency}; file scale {preview.file_scale}; "
@@ -118,7 +124,10 @@ def commit_import(
             },
         )
     )
-    session.commit()
+    if commit:
+        session.commit()
+    else:
+        session.flush()
     return created
 
 

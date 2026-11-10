@@ -239,6 +239,10 @@ class ValuationRun(Base):
     # Which DcfInputs reader the frozen inputs need (LIM-22)
     inputs_schema_version: Mapped[int] = mapped_column(Integer, server_default="1", default=1)
 
+    # Read-only navigation for responses (no columns; viewonly so they can never write)
+    scenario: Mapped[Scenario] = relationship(viewonly=True)
+    project: Mapped[ValuationProject] = relationship(viewonly=True)
+
 
 class AuditEvent(Base):
     __tablename__ = "audit_events"

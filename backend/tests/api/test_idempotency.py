@@ -101,6 +101,7 @@ def test_reusing_a_key_for_a_different_request_is_a_conflict(
     freeze(client, auth, setup["scenario"], "key-reuse-0001", "v1")
     r = freeze(client, auth, setup["scenario"], "key-reuse-0001", "a different label")
     assert r.status_code == 409 and r.json()["errors"][0]["code"] == "IDEMPOTENCY_KEY_REUSED"
+    assert r.json()["error_type"] == "conflict"
     assert counts(client.app) == (1, 1)  # type: ignore[arg-type]
 
 

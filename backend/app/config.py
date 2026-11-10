@@ -11,6 +11,7 @@ class Settings:
     database_url: str
     token_ttl_hours: int = 12
     sqlite_busy_timeout_ms: int = 5000  # plan §4.14: writers wait this long for the lock
+    frontend_dist: str | None = None  # B11: built frontend to serve; None = API only
 
     @classmethod
     def from_env(cls) -> Settings:
@@ -18,4 +19,5 @@ class Settings:
             database_url=os.environ.get("DEALFORGE_DATABASE_URL", "sqlite:///./dealforge.sqlite3"),
             token_ttl_hours=int(os.environ.get("DEALFORGE_TOKEN_TTL_HOURS", "12")),
             sqlite_busy_timeout_ms=int(os.environ.get("DEALFORGE_SQLITE_BUSY_TIMEOUT_MS", "5000")),
+            frontend_dist=os.environ.get("DEALFORGE_FRONTEND_DIST") or None,
         )

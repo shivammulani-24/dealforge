@@ -1,7 +1,7 @@
 # DealForge Phase 4: professional financial analysis frontend (plan, revision 3)
 
-> **Status: PLAN REVISED AFTER REVIEW. Awaiting final approval before F0.** No Phase 4 code has
-> been written. Based on `main` at `2fd8299` (Phase 3 merged via PR #1).
+> **Status: F0a–F0c (backend) IMPLEMENTED; awaiting review before F1.** No frontend code has
+> been written. Transcript: [`demo/phase-4-f0-workflow-output.txt`](demo/phase-4-f0-workflow-output.txt). Based on `main` at `2fd8299` (Phase 3 merged via PR #1).
 >
 > **Revision 2** incorporates the owner's decisions on D4-01 to D4-11 (two amended: D4-02, D4-09)
 > and seven additional requirements (R1–R7). See [section 10](#10-decision-record) for the decision

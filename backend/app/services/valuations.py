@@ -10,7 +10,8 @@ from __future__ import annotations
 
 import hashlib
 import json
-from dataclasses import asdict
+from dataclasses import asdict, dataclass
+from datetime import date
 from typing import Any
 
 from sqlalchemy import select
@@ -36,8 +37,9 @@ from app.engine.consistency import driver_history_warnings
 from app.engine.dates import ValuationDates
 from app.engine.errors import Code, EngineError, Issue, MissingInputError, error
 from app.engine.forecast import HORIZON_YEARS, ForecastInputs, ForecastYearDrivers
-from app.engine.hashing import canonical_json, fingerprint
+from app.engine.hashing import canonical_json, fingerprint, to_plain
 from app.engine.historical import analyze_historicals, operating_nwc
+from app.engine.presentation import margins_from_values
 from app.engine.shares import (
     ConvertibleInstrument,
     InstrumentKind,
@@ -248,10 +250,69 @@ def _li_prov(li: LineItem | None, code: str, fy: int) -> dict[str, Any]:
     }
 
 
+@dataclass(frozen=True)
+class SettingsData:
+    """Scenario market inputs and settings as plain data (no ORM object; C2)."""
+
+    market_data_date: date | None
+    share_price: float | None
+    debt_value_basis: str | None
+    include_leases_in_debt: bool | None
+    market_source_id: int | None
+    market_rationale: str | None
+
+
+@dataclass(frozen=True)
+class AssumptionData:
+    key: str
+    year_index: int | None
+    value: float
+    basis: str
+    source_id: int | None
+    rationale: str | None
+    assumption_id: int | None  # None for an unsaved draft
+
+
+def settings_of(scenario: Scenario) -> SettingsData:
+    return SettingsData(
+        scenario.market_data_date,
+        scenario.share_price,
+        scenario.debt_value_basis,
+        scenario.include_leases_in_debt,
+        scenario.market_source_id,
+        scenario.market_rationale,
+    )
+
+
+def assumptions_of(scenario: Scenario) -> list[AssumptionData]:
+    return [
+        AssumptionData(a.key, a.year_index, a.value, a.basis, a.source_id, a.rationale, a.id)
+        for a in scenario.assumptions
+    ]
+
+
 def build_dcf_inputs(
     session: Session, scenario: Scenario
 ) -> tuple[DcfInputs, dict[str, Any], tuple[Issue, ...]]:
-    company: Company = scenario.project.company
+    """Saved scenario → engine inputs (behaviour unchanged; delegates to the ORM-free core)."""
+    return assemble_dcf_inputs(
+        session, scenario.project.company, settings_of(scenario), assumptions_of(scenario)
+    )
+
+
+def assemble_dcf_inputs(
+    session: Session,
+    company: Company,
+    settings: SettingsData,
+    assumptions: list[AssumptionData],
+    *,
+    draft: bool = False,
+) -> tuple[DcfInputs, dict[str, Any], tuple[Issue, ...]]:
+    """Statements + settings + assumptions → engine inputs and provenance (plan §4.4, C2).
+
+    Reads the company's statements and instruments only; it never creates or modifies an ORM
+    object, so a draft preview can't autoflush anything into the session.
+    """
     periods = list(
         session.scalars(
             select(FinancialPeriod)
@@ -268,7 +329,7 @@ def build_dcf_inputs(
                 "financial_statements",
             )
         )
-    if scenario.market_data_date is None:
+    if settings.market_data_date is None:
         missing.append(
             error(
                 Code.MISSING_INPUT,
@@ -278,7 +339,7 @@ def build_dcf_inputs(
         )
     if missing:
         raise MissingInputError(missing)
-    assert scenario.market_data_date is not None
+    assert settings.market_data_date is not None
     lfy = periods[-1]
     items = {li.item_code: li for li in lfy.line_items}
     fy = lfy.fiscal_year
@@ -339,8 +400,8 @@ def build_dcf_inputs(
                 )
             )
 
-    by_key: dict[tuple[str, int | None], Assumption] = {
-        (a.key, a.year_index): a for a in scenario.assumptions
+    by_key: dict[tuple[str, int | None], AssumptionData] = {
+        (a.key, a.year_index): a for a in assumptions
     }
 
     def assumed(key: str, year: int | None, path: str) -> Any:  # float, or None → engine
@@ -351,7 +412,8 @@ def build_dcf_inputs(
         prov[path] = {
             "status": "ok",
             "basis": a.basis,
-            "assumption_id": a.id,
+            "assumption_id": a.assumption_id,
+            "draft": draft,
             "source_id": a.source_id,
             "rationale": a.rationale,
         }
@@ -368,47 +430,47 @@ def build_dcf_inputs(
         if ("wacc_override", None) in by_key
         else None
     )
-    capm_given = any((k, None) in by_key for k in WACC_KEYS) or scenario.debt_value_basis
+    capm_given = any((k, None) in by_key for k in WACC_KEYS) or settings.debt_value_basis
     wacc = None
     if capm_given:
         vals = {k: assumed(k, None, f"wacc_assumptions.{k}") for k in WACC_KEYS}
         wacc = WaccAssumptions(
             debt_value_basis=passthrough(None)
-            if scenario.debt_value_basis is None
-            else DebtValueBasis(scenario.debt_value_basis),
+            if settings.debt_value_basis is None
+            else DebtValueBasis(settings.debt_value_basis),
             **vals,
         )
     # C5: the price is "reported" only when linked to a market source; otherwise "assumed",
     # with the rationale the analyst gave (A4/A5).
     prov["current_share_price"] = {
-        "status": "ok" if scenario.share_price is not None else "missing",
-        "basis": "reported" if scenario.market_source_id is not None else "assumed",
-        "market_data_date": scenario.market_data_date.isoformat(),
-        "source_id": scenario.market_source_id,
-        "rationale": scenario.market_rationale,
+        "status": "ok" if settings.share_price is not None else "missing",
+        "basis": "reported" if settings.market_source_id is not None else "assumed",
+        "market_data_date": settings.market_data_date.isoformat(),
+        "source_id": settings.market_source_id,
+        "rationale": settings.market_rationale,
     }
     prov["dates"] = {
         "statement_date": lfy.period_end.isoformat(),
         "valuation_date": lfy.period_end.isoformat(),
-        "market_data_date": scenario.market_data_date.isoformat(),
+        "market_data_date": settings.market_data_date.isoformat(),
         "convention": "valuation date = last fiscal year-end (D-07)",
         "statement_fiscal_year": fy,
     }
 
     forecast = ForecastInputs(passthrough(base_revenue), passthrough(nwc_metric.value), years)
     inputs = DcfInputs(
-        dates=ValuationDates(lfy.period_end, lfy.period_end, scenario.market_data_date),
+        dates=ValuationDates(lfy.period_end, lfy.period_end, settings.market_data_date),
         forecast=forecast,
         tax_rate=passthrough(tax),
         terminal_growth=passthrough(g),
         bridge=BridgeInputs(
-            include_leases_in_debt=passthrough(scenario.include_leases_in_debt),
+            include_leases_in_debt=passthrough(settings.include_leases_in_debt),
             **bridge_vals,
         ),
         share_capital=ShareCapitalInputs(
             passthrough(basic), tuple(opts), tuple(rsus), tuple(convs)
         ),
-        current_share_price=scenario.share_price,
+        current_share_price=settings.share_price,
         wacc_assumptions=wacc,
         wacc_override=override,
         is_financial_institution=company.is_financial_institution,
@@ -429,11 +491,97 @@ def issue_dicts(issues: tuple[Issue, ...]) -> list[dict[str, Any]]:
     return [{**asdict(i), "severity": i.severity.value} for i in issues]
 
 
+def context_block(scenario: Scenario) -> dict[str, Any]:
+    """B5: what every figure in a preview or run is about, including its units."""
+    c = scenario.project.company
+    return {
+        "company": {
+            "id": c.id,
+            "name": c.name,
+            "currency": c.currency,
+            "scale": c.scale,
+            "is_synthetic": c.is_synthetic,
+        },
+        "project": {"id": scenario.project.id, "name": scenario.project.name},
+        "scenario": {"id": scenario.id, "name": scenario.name},
+    }
+
+
+def presentation_block(result: dict[str, Any]) -> dict[str, Any]:
+    """B5 / D4-06: EBIT and UFCF margins per forecast year, computed on read from the result.
+    Never written into result_json, so fingerprints and stored runs are unaffected."""
+    years = margins_from_values(
+        [y["revenue"] for y in result["forecast"]["years"]],
+        [y["ebit"] for y in result["forecast"]["years"]],
+        [u["ufcf"] for u in result["ufcf"]],
+    )
+    return {"basis": "derived", "years": to_plain(years)}
+
+
 def preview(session: Session, scenario: Scenario) -> dict[str, Any]:
     inputs, prov, extra = build_dcf_inputs(session, scenario)
+    return _preview_payload(scenario, inputs, prov, extra, draft=False)
+
+
+def draft_preview(
+    session: Session,
+    user: User,
+    scenario: Scenario,
+    settings: dict[str, Any],
+    rows: list[dict[str, Any]],
+) -> dict[str, Any]:
+    """B4 / D4-04: preview unsaved edits. Validates like a save, but writes nothing: no ORM
+    object is created or changed, and no audit event is recorded."""
+    validate_assumption_rows(rows)
+    for i, r in enumerate(rows):
+        if r.get("basis") == "reported":
+            check_reported_source(session, user, r["source_id"], f"assumptions[{i}]")
+        elif r.get("source_id") is not None:
+            get_source(session, user, r["source_id"])
+    if settings.get("market_source_id") is not None:
+        check_reported_source(session, user, settings["market_source_id"], "market_source_id")
+    data = SettingsData(
+        settings["market_data_date"],
+        settings["share_price"],
+        settings["debt_value_basis"],
+        settings["include_leases_in_debt"],
+        settings.get("market_source_id"),
+        settings.get("market_rationale"),
+    )
+    assumptions = [
+        AssumptionData(
+            r["key"],
+            r.get("year_index"),
+            r["value"],
+            r.get("basis", "assumed"),
+            r.get("source_id"),
+            r.get("rationale"),
+            None,
+        )
+        for r in rows
+    ]
+    inputs, prov, extra = assemble_dcf_inputs(
+        session, scenario.project.company, data, assumptions, draft=True
+    )
+    return _preview_payload(scenario, inputs, prov, extra, draft=True)
+
+
+def _preview_payload(
+    scenario: Scenario,
+    inputs: DcfInputs,
+    prov: dict[str, Any],
+    extra: tuple[Issue, ...],
+    *,
+    draft: bool,
+) -> dict[str, Any]:
     result = run_dcf(inputs)
+    plain = json.loads(canonical_json(result))
     return {
-        "result": json.loads(canonical_json(result)),
+        "draft": draft,
+        "context": context_block(scenario),
+        "result": plain,
+        "result_basis": "derived",
+        "presentation": presentation_block(plain),
         "warnings": issue_dicts(result.issues + extra),
         "engine_version": result.engine_version,
         "input_hash": result.input_hash,
@@ -555,7 +703,12 @@ def freeze_run(
 
 
 def run_payload(run: ValuationRun) -> dict[str, Any]:
+    result = json.loads(run.result_json)
     return {
+        "context": context_block(run.scenario),
+        "result_basis": "derived",
+        "presentation": presentation_block(result),
+        "engine_compatible": run.engine_version == ENGINE_VERSION,
         "id": run.id,
         "scenario_id": run.scenario_id,
         "project_id": run.project_id,
@@ -564,7 +717,7 @@ def run_payload(run: ValuationRun) -> dict[str, Any]:
         "input_hash": run.input_hash,
         "created_at": iso_utc(run.created_at),
         "inputs": json.loads(run.inputs_json),
-        "result": json.loads(run.result_json),
+        "result": result,
         "warnings": run.warnings,
         "provenance": run.provenance,
     }
@@ -589,6 +742,7 @@ def verify_run(run: ValuationRun) -> dict[str, Any]:
         "input_hash_matches": fingerprint(inputs) == run.input_hash,
         "engine_version_at_run": run.engine_version,
         "engine_version_now": ENGINE_VERSION,
+        "engine_version_changed": run.engine_version != ENGINE_VERSION,
         "differing_paths": differing,
         "value_per_share": {
             "stored": stored["per_share"]["value_per_share"],
@@ -612,7 +766,13 @@ def _diff_paths(a: Any, b: Any, path: str = "") -> list[str]:
 
 
 def replace_instruments(
-    session: Session, user: User, company: Company, rows: list[dict[str, Any]], source: Source
+    session: Session,
+    user: User,
+    company: Company,
+    rows: list[dict[str, Any]],
+    source: Source,
+    *,
+    commit: bool = True,
 ) -> None:
     old = [
         {
@@ -638,4 +798,7 @@ def replace_instruments(
         "share_instruments",
         {"old": old, "new": rows, "source_id": source.id},
     )
-    session.commit()
+    if commit:
+        session.commit()
+    else:
+        session.flush()

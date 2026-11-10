@@ -10,16 +10,27 @@ from app.api.deps import SessionDep, UserDep
 from app.db.models import Company, LineItem, Source
 from app.engine.hashing import to_plain
 from app.importers.csv_financials import parse_financials_csv
-from app.importers.line_items import ITEMS
+from app.importers.line_items import ITEMS, REQUIRED_FOR
 from app.schemas.api import CompanyIn, CompanyOut, InstrumentsIn, LineItemPatchIn
+from app.schemas.responses import (
+    FinancialsOut,
+    HistoricalAnalysisOut,
+    ImportOut,
+    InstrumentOut,
+    InstrumentsPutOut,
+    LineItemDefOut,
+    PatchLineItemOut,
+    documented,
+)
 from app.services import financials as fin
 from app.services.errors import Conflict, NotFound
+from app.services.metric_definitions import metric_definitions
 from app.services.valuations import audit, replace_instruments
 
 router = APIRouter(tags=["companies"])
 
 
-@router.get("/line-items")
+@router.get("/line-items", responses=documented(list[LineItemDefOut]))
 def line_item_dictionary() -> list[dict[str, Any]]:
     return [asdict(d) for d in ITEMS.values()]
 
@@ -69,7 +80,7 @@ def _preview_payload(p: Any) -> dict[str, Any]:
     }
 
 
-@router.post("/companies/{company_id}/financials/import")
+@router.post("/companies/{company_id}/financials/import", responses=documented(ImportOut))
 async def import_financials(
     company_id: int,
     session: SessionDep,
@@ -102,7 +113,7 @@ async def import_financials(
     return {"committed": True, "fiscal_years": [p.fiscal_year for p in periods], "preview": payload}
 
 
-@router.get("/companies/{company_id}/financials")
+@router.get("/companies/{company_id}/financials", responses=documented(FinancialsOut))
 def get_financials(company_id: int, session: SessionDep, user: UserDep) -> dict[str, Any]:
     company = fin.get_company(session, user, company_id)
     return {
@@ -129,20 +140,46 @@ def get_financials(company_id: int, session: SessionDep, user: UserDep) -> dict[
                     }
                     for li in p.line_items
                 ],
+                "completeness": completeness(p),
             }
             for p in fin.periods_for(session, company)
         ],
     }
 
 
-@router.get("/companies/{company_id}/historical-analysis")
+def completeness(p: Any) -> dict[str, Any]:
+    """B8: present = row with a value; missing = row with NULL; absent = no row at all.
+    The "dcf" group is the DCF's existing statement requirement (unchanged); "liquidity" is
+    separate so its gaps never affect DCF completeness (R6)."""
+    by_code = {li.item_code: li for li in p.line_items}
+    present = sum(1 for li in p.line_items if li.value is not None)
+    missing = sum(1 for li in p.line_items if li.value is None)
+    absent = sum(1 for code in ITEMS if code not in by_code)
+    groups = {}
+    for name, codes in REQUIRED_FOR.items():
+        gaps = [c for c in codes if c not in by_code or by_code[c].value is None]
+        groups[name] = {"required": list(codes), "missing": gaps, "complete": not gaps}
+    return {"present": present, "missing": missing, "absent": absent, "groups": groups}
+
+
+@router.get(
+    "/companies/{company_id}/historical-analysis", responses=documented(HistoricalAnalysisOut)
+)
 def get_historical_analysis(company_id: int, session: SessionDep, user: UserDep) -> dict[str, Any]:
     company = fin.get_company(session, user, company_id)
     a = fin.historical_analysis(session, company)
-    return {"periods": to_plain(a.periods), "issues": to_plain(a.issues)}
+    periods = to_plain(a.periods)
+    for p in periods:  # R2: every metric states its basis
+        for metric in p["metrics"].values():
+            metric["basis"] = "derived"
+    return {
+        "periods": periods,
+        "issues": to_plain(a.issues),
+        "metric_definitions": metric_definitions(),
+    }
 
 
-@router.patch("/line-items/{line_item_id}")
+@router.patch("/line-items/{line_item_id}", responses=documented(PatchLineItemOut))
 def patch_line_item(
     line_item_id: int, body: LineItemPatchIn, session: SessionDep, user: UserDep
 ) -> dict[str, Any]:
@@ -202,13 +239,19 @@ def patch_line_item(
     }
 
 
-@router.put("/companies/{company_id}/share-instruments")
+@router.put("/companies/{company_id}/share-instruments", responses=documented(InstrumentsPutOut))
 def put_instruments(
     company_id: int, body: InstrumentsIn, session: SessionDep, user: UserDep
 ) -> dict[str, Any]:
     company = fin.get_company(session, user, company_id)
     src = Source(
-        owner_id=user.id, kind="manual", title=body.source_title, uri=None, notes=body.source_ref
+        # B12: instruments come from a document (e.g. an annual-report note), so the source is
+        # a "filing", which can back the "reported" basis the DCF provenance gives them (A4).
+        owner_id=user.id,
+        kind="filing",
+        title=body.source_title,
+        uri=None,
+        notes=body.source_ref,
     )
     session.add(src)
     session.flush()
@@ -217,7 +260,7 @@ def put_instruments(
     return {"company_id": company.id, "count": len(rows), "source_id": src.id}
 
 
-@router.get("/companies/{company_id}/share-instruments")
+@router.get("/companies/{company_id}/share-instruments", responses=documented(list[InstrumentOut]))
 def get_instruments(company_id: int, session: SessionDep, user: UserDep) -> list[dict[str, Any]]:
     company = fin.get_company(session, user, company_id)
     return [

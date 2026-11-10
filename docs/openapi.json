@@ -1,0 +1,6406 @@
+{
+  "components": {
+    "schemas": {
+      "ActivityOut": {
+        "additionalProperties": false,
+        "properties": {
+          "action": {
+            "title": "Action",
+            "type": "string"
+          },
+          "at": {
+            "title": "At",
+            "type": "string"
+          },
+          "company_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Company Id"
+          },
+          "entity": {
+            "title": "Entity",
+            "type": "string"
+          },
+          "entity_id": {
+            "title": "Entity Id",
+            "type": "integer"
+          },
+          "summary": {
+            "title": "Summary",
+            "type": "string"
+          }
+        },
+        "required": [
+          "at",
+          "entity",
+          "entity_id",
+          "action",
+          "company_id",
+          "summary"
+        ],
+        "title": "ActivityOut",
+        "type": "object"
+      },
+      "AssumptionIn": {
+        "additionalProperties": false,
+        "properties": {
+          "basis": {
+            "default": "assumed",
+            "enum": [
+              "assumed",
+              "reported"
+            ],
+            "title": "Basis",
+            "type": "string"
+          },
+          "key": {
+            "title": "Key",
+            "type": "string"
+          },
+          "rationale": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rationale"
+          },
+          "source_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Id"
+          },
+          "value": {
+            "title": "Value",
+            "type": "number"
+          },
+          "year_index": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Year Index"
+          }
+        },
+        "required": [
+          "key",
+          "year_index",
+          "value"
+        ],
+        "title": "AssumptionIn",
+        "type": "object"
+      },
+      "AssumptionOut": {
+        "additionalProperties": false,
+        "properties": {
+          "basis": {
+            "enum": [
+              "reported",
+              "assumed"
+            ],
+            "title": "Basis",
+            "type": "string"
+          },
+          "key": {
+            "title": "Key",
+            "type": "string"
+          },
+          "rationale": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rationale"
+          },
+          "source_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Id"
+          },
+          "value": {
+            "title": "Value",
+            "type": "number"
+          },
+          "year_index": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Year Index"
+          }
+        },
+        "required": [
+          "key",
+          "year_index",
+          "value",
+          "basis",
+          "source_id",
+          "rationale"
+        ],
+        "title": "AssumptionOut",
+        "type": "object"
+      },
+      "AxisIn": {
+        "additionalProperties": false,
+        "properties": {
+          "step": {
+            "title": "Step",
+            "type": "number"
+          },
+          "steps_each_side": {
+            "maximum": 5.0,
+            "minimum": 1.0,
+            "title": "Steps Each Side",
+            "type": "integer"
+          },
+          "variable": {
+            "enum": [
+              "wacc",
+              "terminal_growth",
+              "revenue_growth_shift",
+              "ebitda_margin_shift",
+              "capex_pct_shift",
+              "tax_rate"
+            ],
+            "title": "Variable",
+            "type": "string"
+          }
+        },
+        "required": [
+          "variable",
+          "step",
+          "steps_each_side"
+        ],
+        "title": "AxisIn",
+        "type": "object"
+      },
+      "Body_import_financials_api_v1_companies__company_id__financials_import_post": {
+        "properties": {
+          "basis": {
+            "enum": [
+              "reported",
+              "assumed"
+            ],
+            "title": "Basis",
+            "type": "string"
+          },
+          "currency": {
+            "title": "Currency",
+            "type": "string"
+          },
+          "dry_run": {
+            "default": true,
+            "title": "Dry Run",
+            "type": "boolean"
+          },
+          "file": {
+            "contentMediaType": "application/octet-stream",
+            "title": "File",
+            "type": "string"
+          },
+          "rationale": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rationale"
+          },
+          "replace": {
+            "default": false,
+            "title": "Replace",
+            "type": "boolean"
+          },
+          "scale": {
+            "title": "Scale",
+            "type": "string"
+          }
+        },
+        "required": [
+          "file",
+          "currency",
+          "scale",
+          "basis"
+        ],
+        "title": "Body_import_financials_api_v1_companies__company_id__financials_import_post",
+        "type": "object"
+      },
+      "BridgeInputsIn": {
+        "additionalProperties": false,
+        "properties": {
+          "cash": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cash"
+          },
+          "include_leases_in_debt": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Include Leases In Debt"
+          },
+          "lease_liabilities": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lease Liabilities"
+          },
+          "non_controlling_interest": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Non Controlling Interest"
+          },
+          "non_operating_assets": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Non Operating Assets"
+          },
+          "other_debt_like_claims": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Other Debt Like Claims"
+          },
+          "preferred_equity": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Preferred Equity"
+          },
+          "total_debt": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Total Debt"
+          }
+        },
+        "required": [
+          "cash",
+          "total_debt",
+          "lease_liabilities",
+          "include_leases_in_debt",
+          "preferred_equity",
+          "non_controlling_interest",
+          "other_debt_like_claims",
+          "non_operating_assets"
+        ],
+        "title": "BridgeInputsIn",
+        "type": "object"
+      },
+      "BridgeLine": {
+        "additionalProperties": false,
+        "properties": {
+          "amount": {
+            "title": "Amount",
+            "type": "number"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          }
+        },
+        "required": [
+          "label",
+          "amount"
+        ],
+        "title": "BridgeLine",
+        "type": "object"
+      },
+      "BridgeResult": {
+        "additionalProperties": false,
+        "properties": {
+          "enterprise_value": {
+            "title": "Enterprise Value",
+            "type": "number"
+          },
+          "equity_value": {
+            "title": "Equity Value",
+            "type": "number"
+          },
+          "issues": {
+            "items": {
+              "$ref": "#/components/schemas/Issue"
+            },
+            "title": "Issues",
+            "type": "array"
+          },
+          "lines": {
+            "items": {
+              "$ref": "#/components/schemas/BridgeLine"
+            },
+            "title": "Lines",
+            "type": "array"
+          }
+        },
+        "required": [
+          "enterprise_value",
+          "lines",
+          "equity_value",
+          "issues"
+        ],
+        "title": "BridgeResult",
+        "type": "object"
+      },
+      "CloneIn": {
+        "additionalProperties": false,
+        "properties": {
+          "kind": {
+            "enum": [
+              "base",
+              "upside",
+              "downside",
+              "custom"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "name": {
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "kind"
+        ],
+        "title": "CloneIn",
+        "type": "object"
+      },
+      "CompanyIn": {
+        "additionalProperties": false,
+        "properties": {
+          "currency": {
+            "pattern": "^[A-Z]{3}$",
+            "title": "Currency",
+            "type": "string"
+          },
+          "fiscal_year_end_month": {
+            "maximum": 12.0,
+            "minimum": 1.0,
+            "title": "Fiscal Year End Month",
+            "type": "integer"
+          },
+          "is_financial_institution": {
+            "title": "Is Financial Institution",
+            "type": "boolean"
+          },
+          "is_synthetic": {
+            "title": "Is Synthetic",
+            "type": "boolean"
+          },
+          "name": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Name",
+            "type": "string"
+          },
+          "scale": {
+            "enum": [
+              "units",
+              "thousands",
+              "lakhs",
+              "millions",
+              "crores",
+              "billions"
+            ],
+            "title": "Scale",
+            "type": "string"
+          },
+          "sector": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sector"
+          }
+        },
+        "required": [
+          "name",
+          "sector",
+          "currency",
+          "scale",
+          "fiscal_year_end_month",
+          "is_financial_institution",
+          "is_synthetic"
+        ],
+        "title": "CompanyIn",
+        "type": "object"
+      },
+      "CompanyOut": {
+        "properties": {
+          "currency": {
+            "title": "Currency",
+            "type": "string"
+          },
+          "fiscal_year_end_month": {
+            "title": "Fiscal Year End Month",
+            "type": "integer"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "is_financial_institution": {
+            "title": "Is Financial Institution",
+            "type": "boolean"
+          },
+          "is_synthetic": {
+            "title": "Is Synthetic",
+            "type": "boolean"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "scale": {
+            "title": "Scale",
+            "type": "string"
+          },
+          "sector": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sector"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "sector",
+          "currency",
+          "scale",
+          "fiscal_year_end_month",
+          "is_financial_institution",
+          "is_synthetic"
+        ],
+        "title": "CompanyOut",
+        "type": "object"
+      },
+      "CompanyRef": {
+        "additionalProperties": false,
+        "properties": {
+          "currency": {
+            "title": "Currency",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "is_synthetic": {
+            "title": "Is Synthetic",
+            "type": "boolean"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "scale": {
+            "title": "Scale",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "currency",
+          "scale",
+          "is_synthetic"
+        ],
+        "title": "CompanyRef",
+        "type": "object"
+      },
+      "CompletenessGroupOut": {
+        "additionalProperties": false,
+        "properties": {
+          "complete": {
+            "title": "Complete",
+            "type": "boolean"
+          },
+          "missing": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Missing",
+            "type": "array"
+          },
+          "required": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Required",
+            "type": "array"
+          }
+        },
+        "required": [
+          "required",
+          "missing",
+          "complete"
+        ],
+        "title": "CompletenessGroupOut",
+        "type": "object"
+      },
+      "CompletenessOut": {
+        "additionalProperties": false,
+        "properties": {
+          "absent": {
+            "title": "Absent",
+            "type": "integer"
+          },
+          "groups": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/CompletenessGroupOut"
+            },
+            "title": "Groups",
+            "type": "object"
+          },
+          "missing": {
+            "title": "Missing",
+            "type": "integer"
+          },
+          "present": {
+            "title": "Present",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "present",
+          "missing",
+          "absent",
+          "groups"
+        ],
+        "title": "CompletenessOut",
+        "type": "object"
+      },
+      "ContextOut": {
+        "additionalProperties": false,
+        "properties": {
+          "company": {
+            "$ref": "#/components/schemas/CompanyRef"
+          },
+          "project": {
+            "$ref": "#/components/schemas/NamedRef"
+          },
+          "scenario": {
+            "$ref": "#/components/schemas/NamedRef"
+          }
+        },
+        "required": [
+          "company",
+          "project",
+          "scenario"
+        ],
+        "title": "ContextOut",
+        "type": "object"
+      },
+      "ConvertibleInstrumentIn": {
+        "additionalProperties": false,
+        "properties": {
+          "conversion_price": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Conversion Price"
+          },
+          "coupon_rate": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Coupon Rate"
+          },
+          "face_value": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Face Value"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          }
+        },
+        "required": [
+          "label",
+          "face_value",
+          "conversion_price",
+          "coupon_rate"
+        ],
+        "title": "ConvertibleInstrumentIn",
+        "type": "object"
+      },
+      "CountsOut": {
+        "additionalProperties": false,
+        "properties": {
+          "companies": {
+            "title": "Companies",
+            "type": "integer"
+          },
+          "projects": {
+            "title": "Projects",
+            "type": "integer"
+          },
+          "runs": {
+            "title": "Runs",
+            "type": "integer"
+          },
+          "scenarios": {
+            "title": "Scenarios",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "companies",
+          "projects",
+          "scenarios",
+          "runs"
+        ],
+        "title": "CountsOut",
+        "type": "object"
+      },
+      "DashboardCompanyOut": {
+        "additionalProperties": false,
+        "properties": {
+          "fiscal_years": {
+            "items": {
+              "type": "integer"
+            },
+            "title": "Fiscal Years",
+            "type": "array"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "is_synthetic": {
+            "title": "Is Synthetic",
+            "type": "boolean"
+          },
+          "last_activity_at": {
+            "title": "Last Activity At",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "is_synthetic",
+          "last_activity_at",
+          "fiscal_years"
+        ],
+        "title": "DashboardCompanyOut",
+        "type": "object"
+      },
+      "DashboardOut": {
+        "additionalProperties": false,
+        "properties": {
+          "counts": {
+            "$ref": "#/components/schemas/CountsOut"
+          },
+          "onboarding": {
+            "$ref": "#/components/schemas/OnboardingOut"
+          },
+          "recent_activity": {
+            "items": {
+              "$ref": "#/components/schemas/ActivityOut"
+            },
+            "title": "Recent Activity",
+            "type": "array"
+          },
+          "recent_companies": {
+            "items": {
+              "$ref": "#/components/schemas/DashboardCompanyOut"
+            },
+            "title": "Recent Companies",
+            "type": "array"
+          },
+          "recent_runs": {
+            "items": {
+              "$ref": "#/components/schemas/DashboardRunOut"
+            },
+            "title": "Recent Runs",
+            "type": "array"
+          }
+        },
+        "required": [
+          "counts",
+          "onboarding",
+          "recent_runs",
+          "recent_companies",
+          "recent_activity"
+        ],
+        "title": "DashboardOut",
+        "type": "object"
+      },
+      "DashboardRunOut": {
+        "additionalProperties": false,
+        "properties": {
+          "company": {
+            "$ref": "#/components/schemas/CompanyRef"
+          },
+          "created_at": {
+            "title": "Created At",
+            "type": "string"
+          },
+          "engine_compatible": {
+            "title": "Engine Compatible",
+            "type": "boolean"
+          },
+          "engine_version": {
+            "title": "Engine Version",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "label": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Label"
+          },
+          "scenario": {
+            "$ref": "#/components/schemas/NamedRef"
+          },
+          "value_per_share": {
+            "title": "Value Per Share",
+            "type": "number"
+          }
+        },
+        "required": [
+          "id",
+          "label",
+          "created_at",
+          "company",
+          "scenario",
+          "value_per_share",
+          "engine_version",
+          "engine_compatible"
+        ],
+        "title": "DashboardRunOut",
+        "type": "object"
+      },
+      "DateSchedule": {
+        "additionalProperties": false,
+        "properties": {
+          "convention": {
+            "title": "Convention",
+            "type": "string"
+          },
+          "issues": {
+            "items": {
+              "$ref": "#/components/schemas/Issue"
+            },
+            "title": "Issues",
+            "type": "array"
+          },
+          "market_data_date": {
+            "format": "date",
+            "title": "Market Data Date",
+            "type": "string"
+          },
+          "market_data_gap_days": {
+            "title": "Market Data Gap Days",
+            "type": "integer"
+          },
+          "periods": {
+            "items": {
+              "$ref": "#/components/schemas/ForecastPeriod"
+            },
+            "title": "Periods",
+            "type": "array"
+          },
+          "statement_date": {
+            "format": "date",
+            "title": "Statement Date",
+            "type": "string"
+          },
+          "valuation_date": {
+            "format": "date",
+            "title": "Valuation Date",
+            "type": "string"
+          }
+        },
+        "required": [
+          "statement_date",
+          "valuation_date",
+          "market_data_date",
+          "market_data_gap_days",
+          "periods",
+          "convention",
+          "issues"
+        ],
+        "title": "DateSchedule",
+        "type": "object"
+      },
+      "DcfInputsIn": {
+        "additionalProperties": false,
+        "properties": {
+          "bridge": {
+            "$ref": "#/components/schemas/BridgeInputsIn"
+          },
+          "current_share_price": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Current Share Price"
+          },
+          "dates": {
+            "$ref": "#/components/schemas/ValuationDatesIn"
+          },
+          "forecast": {
+            "$ref": "#/components/schemas/ForecastInputsIn"
+          },
+          "is_financial_institution": {
+            "title": "Is Financial Institution",
+            "type": "boolean"
+          },
+          "peer_ev_ebitda_range": {
+            "anyOf": [
+              {
+                "maxItems": 2,
+                "minItems": 2,
+                "prefixItems": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  }
+                ],
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Peer Ev Ebitda Range"
+          },
+          "share_capital": {
+            "$ref": "#/components/schemas/ShareCapitalInputsIn"
+          },
+          "tax_rate": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tax Rate"
+          },
+          "terminal_growth": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Terminal Growth"
+          },
+          "wacc_assumptions": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/WaccAssumptionsIn"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "wacc_override": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Wacc Override"
+          }
+        },
+        "required": [
+          "dates",
+          "forecast",
+          "tax_rate",
+          "terminal_growth",
+          "bridge",
+          "share_capital",
+          "current_share_price",
+          "wacc_assumptions",
+          "wacc_override",
+          "is_financial_institution",
+          "peer_ev_ebitda_range"
+        ],
+        "title": "DcfInputsIn",
+        "type": "object"
+      },
+      "DcfResult": {
+        "additionalProperties": false,
+        "properties": {
+          "bridge": {
+            "$ref": "#/components/schemas/BridgeResult"
+          },
+          "current_share_price": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Current Share Price"
+          },
+          "engine_version": {
+            "title": "Engine Version",
+            "type": "string"
+          },
+          "forecast": {
+            "$ref": "#/components/schemas/Forecast"
+          },
+          "implied_exit_multiple": {
+            "$ref": "#/components/schemas/Metric"
+          },
+          "input_hash": {
+            "title": "Input Hash",
+            "type": "string"
+          },
+          "issues": {
+            "items": {
+              "$ref": "#/components/schemas/Issue"
+            },
+            "title": "Issues",
+            "type": "array"
+          },
+          "per_share": {
+            "$ref": "#/components/schemas/ImpliedPerShare"
+          },
+          "schedule": {
+            "$ref": "#/components/schemas/DateSchedule"
+          },
+          "terminal": {
+            "$ref": "#/components/schemas/TerminalValue"
+          },
+          "ufcf": {
+            "items": {
+              "$ref": "#/components/schemas/UfcfLine"
+            },
+            "title": "Ufcf",
+            "type": "array"
+          },
+          "upside_vs_market": {
+            "$ref": "#/components/schemas/Metric"
+          },
+          "valuation": {
+            "$ref": "#/components/schemas/EnterpriseValue"
+          },
+          "wacc": {
+            "title": "Wacc",
+            "type": "number"
+          },
+          "wacc_build": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/WaccResult"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "engine_version",
+          "input_hash",
+          "schedule",
+          "forecast",
+          "ufcf",
+          "wacc_build",
+          "wacc",
+          "terminal",
+          "valuation",
+          "implied_exit_multiple",
+          "bridge",
+          "per_share",
+          "current_share_price",
+          "upside_vs_market",
+          "issues"
+        ],
+        "title": "DcfResult",
+        "type": "object"
+      },
+      "DebtValueBasis": {
+        "enum": [
+          "market",
+          "book"
+        ],
+        "title": "DebtValueBasis",
+        "type": "string"
+      },
+      "DerivedMetricOut": {
+        "additionalProperties": false,
+        "properties": {
+          "basis": {
+            "const": "derived",
+            "title": "Basis",
+            "type": "string"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          },
+          "status": {
+            "enum": [
+              "ok",
+              "missing",
+              "not_meaningful"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "value": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Value"
+          }
+        },
+        "required": [
+          "value",
+          "status",
+          "reason",
+          "basis"
+        ],
+        "title": "DerivedMetricOut",
+        "type": "object"
+      },
+      "DilutionResult": {
+        "additionalProperties": false,
+        "properties": {
+          "basic_shares": {
+            "title": "Basic Shares",
+            "type": "number"
+          },
+          "converted_face": {
+            "title": "Converted Face",
+            "type": "number"
+          },
+          "diluted_shares": {
+            "title": "Diluted Shares",
+            "type": "number"
+          },
+          "lines": {
+            "items": {
+              "$ref": "#/components/schemas/InstrumentDilution"
+            },
+            "title": "Lines",
+            "type": "array"
+          },
+          "method": {
+            "title": "Method",
+            "type": "string"
+          },
+          "price": {
+            "title": "Price",
+            "type": "number"
+          },
+          "unconverted_face": {
+            "title": "Unconverted Face",
+            "type": "number"
+          }
+        },
+        "required": [
+          "price",
+          "basic_shares",
+          "lines",
+          "diluted_shares",
+          "converted_face",
+          "unconverted_face",
+          "method"
+        ],
+        "title": "DilutionResult",
+        "type": "object"
+      },
+      "DiscountedFlow": {
+        "additionalProperties": false,
+        "properties": {
+          "cash_flow": {
+            "title": "Cash Flow",
+            "type": "number"
+          },
+          "discount_factor": {
+            "title": "Discount Factor",
+            "type": "number"
+          },
+          "present_value": {
+            "title": "Present Value",
+            "type": "number"
+          },
+          "t": {
+            "title": "T",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "t",
+          "cash_flow",
+          "discount_factor",
+          "present_value"
+        ],
+        "title": "DiscountedFlow",
+        "type": "object"
+      },
+      "EbitdaBasis": {
+        "enum": [
+          "standardized",
+          "reported",
+          "adjusted"
+        ],
+        "title": "EbitdaBasis",
+        "type": "string"
+      },
+      "EbitdaReconciliation": {
+        "additionalProperties": false,
+        "properties": {
+          "adjusted": {
+            "$ref": "#/components/schemas/Metric"
+          },
+          "adjustments_base": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/EbitdaBasis"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "adjustments_total": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Adjustments Total"
+          },
+          "issues": {
+            "items": {
+              "$ref": "#/components/schemas/Issue"
+            },
+            "title": "Issues",
+            "type": "array"
+          },
+          "reported": {
+            "$ref": "#/components/schemas/Metric"
+          },
+          "standardized": {
+            "$ref": "#/components/schemas/Metric"
+          }
+        },
+        "required": [
+          "standardized",
+          "reported",
+          "adjusted",
+          "adjustments_total",
+          "adjustments_base",
+          "issues"
+        ],
+        "title": "EbitdaReconciliation",
+        "type": "object"
+      },
+      "EnterpriseValue": {
+        "additionalProperties": false,
+        "properties": {
+          "enterprise_value": {
+            "title": "Enterprise Value",
+            "type": "number"
+          },
+          "flows": {
+            "items": {
+              "$ref": "#/components/schemas/DiscountedFlow"
+            },
+            "title": "Flows",
+            "type": "array"
+          },
+          "issues": {
+            "items": {
+              "$ref": "#/components/schemas/Issue"
+            },
+            "title": "Issues",
+            "type": "array"
+          },
+          "pv_terminal_value": {
+            "title": "Pv Terminal Value",
+            "type": "number"
+          },
+          "sum_pv_flows": {
+            "title": "Sum Pv Flows",
+            "type": "number"
+          },
+          "terminal_value": {
+            "title": "Terminal Value",
+            "type": "number"
+          },
+          "tv_share_of_ev": {
+            "$ref": "#/components/schemas/Metric"
+          }
+        },
+        "required": [
+          "flows",
+          "sum_pv_flows",
+          "terminal_value",
+          "pv_terminal_value",
+          "enterprise_value",
+          "tv_share_of_ev",
+          "issues"
+        ],
+        "title": "EnterpriseValue",
+        "type": "object"
+      },
+      "FinancialsOut": {
+        "additionalProperties": false,
+        "properties": {
+          "company_id": {
+            "title": "Company Id",
+            "type": "integer"
+          },
+          "currency": {
+            "title": "Currency",
+            "type": "string"
+          },
+          "periods": {
+            "items": {
+              "$ref": "#/components/schemas/PeriodOut"
+            },
+            "title": "Periods",
+            "type": "array"
+          },
+          "scale": {
+            "title": "Scale",
+            "type": "string"
+          }
+        },
+        "required": [
+          "company_id",
+          "currency",
+          "scale",
+          "periods"
+        ],
+        "title": "FinancialsOut",
+        "type": "object"
+      },
+      "Forecast": {
+        "additionalProperties": false,
+        "properties": {
+          "issues": {
+            "items": {
+              "$ref": "#/components/schemas/Issue"
+            },
+            "title": "Issues",
+            "type": "array"
+          },
+          "years": {
+            "items": {
+              "$ref": "#/components/schemas/ForecastYear"
+            },
+            "title": "Years",
+            "type": "array"
+          }
+        },
+        "required": [
+          "years",
+          "issues"
+        ],
+        "title": "Forecast",
+        "type": "object"
+      },
+      "ForecastInputsIn": {
+        "additionalProperties": false,
+        "properties": {
+          "base_nwc": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Base Nwc"
+          },
+          "base_revenue": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Base Revenue"
+          },
+          "years": {
+            "items": {
+              "$ref": "#/components/schemas/ForecastYearDriversIn"
+            },
+            "title": "Years",
+            "type": "array"
+          }
+        },
+        "required": [
+          "base_revenue",
+          "base_nwc",
+          "years"
+        ],
+        "title": "ForecastInputsIn",
+        "type": "object"
+      },
+      "ForecastPeriod": {
+        "additionalProperties": false,
+        "properties": {
+          "end_date": {
+            "format": "date",
+            "title": "End Date",
+            "type": "string"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "t": {
+            "title": "T",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "t",
+          "label",
+          "end_date"
+        ],
+        "title": "ForecastPeriod",
+        "type": "object"
+      },
+      "ForecastYear": {
+        "additionalProperties": false,
+        "properties": {
+          "capex": {
+            "title": "Capex",
+            "type": "number"
+          },
+          "change_in_nwc": {
+            "title": "Change In Nwc",
+            "type": "number"
+          },
+          "da": {
+            "title": "Da",
+            "type": "number"
+          },
+          "ebit": {
+            "title": "Ebit",
+            "type": "number"
+          },
+          "ebitda": {
+            "title": "Ebitda",
+            "type": "number"
+          },
+          "nwc": {
+            "title": "Nwc",
+            "type": "number"
+          },
+          "revenue": {
+            "title": "Revenue",
+            "type": "number"
+          },
+          "t": {
+            "title": "T",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "t",
+          "revenue",
+          "ebitda",
+          "da",
+          "ebit",
+          "capex",
+          "nwc",
+          "change_in_nwc"
+        ],
+        "title": "ForecastYear",
+        "type": "object"
+      },
+      "ForecastYearDriversIn": {
+        "additionalProperties": false,
+        "properties": {
+          "capex_pct_revenue": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Capex Pct Revenue"
+          },
+          "da_pct_revenue": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Da Pct Revenue"
+          },
+          "ebitda_margin": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ebitda Margin"
+          },
+          "nwc_pct_revenue": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Nwc Pct Revenue"
+          },
+          "revenue_growth": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Revenue Growth"
+          }
+        },
+        "required": [
+          "revenue_growth",
+          "ebitda_margin",
+          "da_pct_revenue",
+          "capex_pct_revenue",
+          "nwc_pct_revenue"
+        ],
+        "title": "ForecastYearDriversIn",
+        "type": "object"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "title": "Detail",
+            "type": "array"
+          }
+        },
+        "title": "HTTPValidationError",
+        "type": "object"
+      },
+      "HealthOut": {
+        "additionalProperties": false,
+        "properties": {
+          "engine_version": {
+            "title": "Engine Version",
+            "type": "string"
+          },
+          "status": {
+            "const": "ok",
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "engine_version"
+        ],
+        "title": "HealthOut",
+        "type": "object"
+      },
+      "HistoricalAnalysisOut": {
+        "additionalProperties": false,
+        "properties": {
+          "issues": {
+            "items": {
+              "$ref": "#/components/schemas/IssueOut"
+            },
+            "title": "Issues",
+            "type": "array"
+          },
+          "metric_definitions": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/MetricDefinitionOut"
+            },
+            "title": "Metric Definitions",
+            "type": "object"
+          },
+          "periods": {
+            "items": {
+              "$ref": "#/components/schemas/PeriodAnalysisOut"
+            },
+            "title": "Periods",
+            "type": "array"
+          }
+        },
+        "required": [
+          "periods",
+          "issues",
+          "metric_definitions"
+        ],
+        "title": "HistoricalAnalysisOut",
+        "type": "object"
+      },
+      "ImpliedPerShare": {
+        "additionalProperties": false,
+        "properties": {
+          "circular": {
+            "title": "Circular",
+            "type": "boolean"
+          },
+          "dilution": {
+            "$ref": "#/components/schemas/DilutionResult"
+          },
+          "equity_value_before_conversion": {
+            "title": "Equity Value Before Conversion",
+            "type": "number"
+          },
+          "equity_value_to_common": {
+            "title": "Equity Value To Common",
+            "type": "number"
+          },
+          "issues": {
+            "items": {
+              "$ref": "#/components/schemas/Issue"
+            },
+            "title": "Issues",
+            "type": "array"
+          },
+          "method": {
+            "title": "Method",
+            "type": "string"
+          },
+          "value_per_share": {
+            "title": "Value Per Share",
+            "type": "number"
+          }
+        },
+        "required": [
+          "equity_value_before_conversion",
+          "equity_value_to_common",
+          "value_per_share",
+          "dilution",
+          "circular",
+          "method",
+          "issues"
+        ],
+        "title": "ImpliedPerShare",
+        "type": "object"
+      },
+      "ImportIssueOut": {
+        "additionalProperties": false,
+        "properties": {
+          "code": {
+            "title": "Code",
+            "type": "string"
+          },
+          "column": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Column"
+          },
+          "message": {
+            "title": "Message",
+            "type": "string"
+          },
+          "row": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Row"
+          },
+          "severity": {
+            "enum": [
+              "error",
+              "warning",
+              "info"
+            ],
+            "title": "Severity",
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "message",
+          "severity",
+          "row",
+          "column"
+        ],
+        "title": "ImportIssueOut",
+        "type": "object"
+      },
+      "ImportOut": {
+        "additionalProperties": false,
+        "properties": {
+          "committed": {
+            "title": "Committed",
+            "type": "boolean"
+          },
+          "fiscal_years": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "integer"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Fiscal Years"
+          },
+          "preview": {
+            "$ref": "#/components/schemas/ImportPreviewOut"
+          }
+        },
+        "required": [
+          "committed",
+          "preview"
+        ],
+        "title": "ImportOut",
+        "type": "object"
+      },
+      "ImportPreviewOut": {
+        "additionalProperties": false,
+        "properties": {
+          "currency": {
+            "title": "Currency",
+            "type": "string"
+          },
+          "errors": {
+            "items": {
+              "$ref": "#/components/schemas/ImportIssueOut"
+            },
+            "title": "Errors",
+            "type": "array"
+          },
+          "file_name": {
+            "title": "File Name",
+            "type": "string"
+          },
+          "file_scale": {
+            "title": "File Scale",
+            "type": "string"
+          },
+          "file_sha256": {
+            "title": "File Sha256",
+            "type": "string"
+          },
+          "historical_metrics": {
+            "anyOf": [
+              {
+                "items": {
+                  "additionalProperties": true,
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Historical Metrics"
+          },
+          "issues": {
+            "items": {
+              "$ref": "#/components/schemas/ImportIssueOut"
+            },
+            "title": "Issues",
+            "type": "array"
+          },
+          "ok": {
+            "title": "Ok",
+            "type": "boolean"
+          },
+          "periods": {
+            "items": {
+              "$ref": "#/components/schemas/ParsedPeriodOut"
+            },
+            "title": "Periods",
+            "type": "array"
+          },
+          "stored_scale": {
+            "title": "Stored Scale",
+            "type": "string"
+          }
+        },
+        "required": [
+          "ok",
+          "file_name",
+          "file_sha256",
+          "currency",
+          "file_scale",
+          "stored_scale",
+          "errors",
+          "issues",
+          "periods",
+          "historical_metrics"
+        ],
+        "title": "ImportPreviewOut",
+        "type": "object"
+      },
+      "InstrumentDilution": {
+        "additionalProperties": false,
+        "properties": {
+          "gross_shares": {
+            "title": "Gross Shares",
+            "type": "number"
+          },
+          "included": {
+            "title": "Included",
+            "type": "boolean"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/InstrumentKind"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "net_new_shares": {
+            "title": "Net New Shares",
+            "type": "number"
+          },
+          "note": {
+            "title": "Note",
+            "type": "string"
+          },
+          "proceeds": {
+            "title": "Proceeds",
+            "type": "number"
+          },
+          "shares_repurchased": {
+            "title": "Shares Repurchased",
+            "type": "number"
+          }
+        },
+        "required": [
+          "label",
+          "kind",
+          "gross_shares",
+          "included",
+          "proceeds",
+          "shares_repurchased",
+          "net_new_shares",
+          "note"
+        ],
+        "title": "InstrumentDilution",
+        "type": "object"
+      },
+      "InstrumentIn": {
+        "additionalProperties": false,
+        "properties": {
+          "conversion_price": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Conversion Price"
+          },
+          "count": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Count"
+          },
+          "coupon_rate": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Coupon Rate"
+          },
+          "face_value": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Face Value"
+          },
+          "kind": {
+            "enum": [
+              "option",
+              "warrant",
+              "rsu",
+              "convertible"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "label": {
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Label",
+            "type": "string"
+          },
+          "strike": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Strike"
+          }
+        },
+        "required": [
+          "kind",
+          "label"
+        ],
+        "title": "InstrumentIn",
+        "type": "object"
+      },
+      "InstrumentKind": {
+        "enum": [
+          "option",
+          "warrant",
+          "rsu",
+          "convertible"
+        ],
+        "title": "InstrumentKind",
+        "type": "string"
+      },
+      "InstrumentOut": {
+        "additionalProperties": false,
+        "properties": {
+          "conversion_price": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Conversion Price"
+          },
+          "count": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Count"
+          },
+          "coupon_rate": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Coupon Rate"
+          },
+          "face_value": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Face Value"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "kind": {
+            "enum": [
+              "option",
+              "warrant",
+              "rsu",
+              "convertible"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "source_id": {
+            "title": "Source Id",
+            "type": "integer"
+          },
+          "strike": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Strike"
+          }
+        },
+        "required": [
+          "id",
+          "kind",
+          "label",
+          "count",
+          "strike",
+          "face_value",
+          "conversion_price",
+          "coupon_rate",
+          "source_id"
+        ],
+        "title": "InstrumentOut",
+        "type": "object"
+      },
+      "InstrumentsIn": {
+        "additionalProperties": false,
+        "properties": {
+          "instruments": {
+            "items": {
+              "$ref": "#/components/schemas/InstrumentIn"
+            },
+            "title": "Instruments",
+            "type": "array"
+          },
+          "source_ref": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Ref"
+          },
+          "source_title": {
+            "maxLength": 300,
+            "minLength": 1,
+            "title": "Source Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "source_title",
+          "source_ref",
+          "instruments"
+        ],
+        "title": "InstrumentsIn",
+        "type": "object"
+      },
+      "InstrumentsPutOut": {
+        "additionalProperties": false,
+        "properties": {
+          "company_id": {
+            "title": "Company Id",
+            "type": "integer"
+          },
+          "count": {
+            "title": "Count",
+            "type": "integer"
+          },
+          "source_id": {
+            "title": "Source Id",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "company_id",
+          "count",
+          "source_id"
+        ],
+        "title": "InstrumentsPutOut",
+        "type": "object"
+      },
+      "Issue": {
+        "additionalProperties": false,
+        "properties": {
+          "code": {
+            "title": "Code",
+            "type": "string"
+          },
+          "field": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Field"
+          },
+          "message": {
+            "title": "Message",
+            "type": "string"
+          },
+          "severity": {
+            "$ref": "#/components/schemas/Severity"
+          }
+        },
+        "required": [
+          "code",
+          "message",
+          "severity"
+        ],
+        "title": "Issue",
+        "type": "object"
+      },
+      "IssueOut": {
+        "additionalProperties": false,
+        "properties": {
+          "code": {
+            "title": "Code",
+            "type": "string"
+          },
+          "field": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Field"
+          },
+          "message": {
+            "title": "Message",
+            "type": "string"
+          },
+          "severity": {
+            "enum": [
+              "info",
+              "warning",
+              "error"
+            ],
+            "title": "Severity",
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "message",
+          "severity",
+          "field"
+        ],
+        "title": "IssueOut",
+        "type": "object"
+      },
+      "LineItemDefOut": {
+        "additionalProperties": false,
+        "properties": {
+          "code": {
+            "title": "Code",
+            "type": "string"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "magnitude": {
+            "title": "Magnitude",
+            "type": "boolean"
+          },
+          "statement": {
+            "title": "Statement",
+            "type": "string"
+          },
+          "used_by": {
+            "title": "Used By",
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "label",
+          "statement",
+          "magnitude",
+          "used_by"
+        ],
+        "title": "LineItemDefOut",
+        "type": "object"
+      },
+      "LineItemOut": {
+        "additionalProperties": false,
+        "properties": {
+          "basis": {
+            "enum": [
+              "reported",
+              "assumed",
+              "derived"
+            ],
+            "title": "Basis",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "item_code": {
+            "title": "Item Code",
+            "type": "string"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          },
+          "original_scale": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Original Scale"
+          },
+          "original_text": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Original Text"
+          },
+          "original_value": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Original Value"
+          },
+          "source_id": {
+            "title": "Source Id",
+            "type": "integer"
+          },
+          "source_ref": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Ref"
+          },
+          "source_title": {
+            "title": "Source Title",
+            "type": "string"
+          },
+          "value": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Value"
+          }
+        },
+        "required": [
+          "id",
+          "item_code",
+          "value",
+          "basis",
+          "source_id",
+          "source_title",
+          "source_ref",
+          "original_value",
+          "original_scale",
+          "original_text",
+          "note"
+        ],
+        "title": "LineItemOut",
+        "type": "object"
+      },
+      "LineItemPatchIn": {
+        "additionalProperties": false,
+        "description": "C6 (breaking change): the basis is explicit. ``reported`` needs the source document;\n``assumed`` needs a rationale. ``derived`` can't be entered (A6).",
+        "properties": {
+          "basis": {
+            "enum": [
+              "reported",
+              "assumed"
+            ],
+            "title": "Basis",
+            "type": "string"
+          },
+          "rationale": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rationale"
+          },
+          "source": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SourceRefIn"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "value": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Value"
+          }
+        },
+        "required": [
+          "value",
+          "basis"
+        ],
+        "title": "LineItemPatchIn",
+        "type": "object"
+      },
+      "LoginIn": {
+        "additionalProperties": false,
+        "properties": {
+          "email": {
+            "title": "Email",
+            "type": "string"
+          },
+          "password": {
+            "title": "Password",
+            "type": "string"
+          }
+        },
+        "required": [
+          "email",
+          "password"
+        ],
+        "title": "LoginIn",
+        "type": "object"
+      },
+      "Metric": {
+        "additionalProperties": false,
+        "properties": {
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          },
+          "status": {
+            "$ref": "#/components/schemas/Status"
+          },
+          "value": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Value"
+          }
+        },
+        "required": [
+          "value",
+          "status"
+        ],
+        "title": "Metric",
+        "type": "object"
+      },
+      "MetricDefinitionOut": {
+        "additionalProperties": false,
+        "properties": {
+          "basis": {
+            "const": "derived",
+            "title": "Basis",
+            "type": "string"
+          },
+          "formula": {
+            "title": "Formula",
+            "type": "string"
+          },
+          "items": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "not_meaningful": {
+            "title": "Not Meaningful",
+            "type": "string"
+          }
+        },
+        "required": [
+          "formula",
+          "items",
+          "not_meaningful",
+          "basis"
+        ],
+        "title": "MetricDefinitionOut",
+        "type": "object"
+      },
+      "MetricOut": {
+        "additionalProperties": false,
+        "properties": {
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          },
+          "status": {
+            "enum": [
+              "ok",
+              "missing",
+              "not_meaningful"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "value": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Value"
+          }
+        },
+        "required": [
+          "value",
+          "status",
+          "reason"
+        ],
+        "title": "MetricOut",
+        "type": "object"
+      },
+      "NamedRef": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name"
+        ],
+        "title": "NamedRef",
+        "type": "object"
+      },
+      "OnboardingOut": {
+        "additionalProperties": false,
+        "properties": {
+          "complete": {
+            "title": "Complete",
+            "type": "boolean"
+          },
+          "sample_available": {
+            "title": "Sample Available",
+            "type": "boolean"
+          },
+          "sample_loaded": {
+            "title": "Sample Loaded",
+            "type": "boolean"
+          },
+          "steps": {
+            "items": {
+              "$ref": "#/components/schemas/OnboardingStepOut"
+            },
+            "title": "Steps",
+            "type": "array"
+          }
+        },
+        "required": [
+          "complete",
+          "steps",
+          "sample_available",
+          "sample_loaded"
+        ],
+        "title": "OnboardingOut",
+        "type": "object"
+      },
+      "OnboardingStepOut": {
+        "additionalProperties": false,
+        "properties": {
+          "done": {
+            "title": "Done",
+            "type": "boolean"
+          },
+          "key": {
+            "enum": [
+              "company",
+              "statements",
+              "scenario",
+              "run"
+            ],
+            "title": "Key",
+            "type": "string"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          }
+        },
+        "required": [
+          "key",
+          "label",
+          "done"
+        ],
+        "title": "OnboardingStepOut",
+        "type": "object"
+      },
+      "OptionTrancheIn": {
+        "additionalProperties": false,
+        "properties": {
+          "count": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Count"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/InstrumentKind"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "strike": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Strike"
+          }
+        },
+        "required": [
+          "label",
+          "count",
+          "strike",
+          "kind"
+        ],
+        "title": "OptionTrancheIn",
+        "type": "object"
+      },
+      "ParsedCellOut": {
+        "additionalProperties": false,
+        "properties": {
+          "column": {
+            "title": "Column",
+            "type": "string"
+          },
+          "original_text": {
+            "title": "Original Text",
+            "type": "string"
+          },
+          "original_value": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Original Value"
+          },
+          "row": {
+            "title": "Row",
+            "type": "integer"
+          },
+          "value": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Value"
+          }
+        },
+        "required": [
+          "value",
+          "original_text",
+          "original_value",
+          "row",
+          "column"
+        ],
+        "title": "ParsedCellOut",
+        "type": "object"
+      },
+      "ParsedPeriodOut": {
+        "additionalProperties": false,
+        "properties": {
+          "fiscal_year": {
+            "title": "Fiscal Year",
+            "type": "integer"
+          },
+          "period_end": {
+            "title": "Period End",
+            "type": "string"
+          },
+          "values": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/ParsedCellOut"
+            },
+            "title": "Values",
+            "type": "object"
+          }
+        },
+        "required": [
+          "fiscal_year",
+          "period_end",
+          "values"
+        ],
+        "title": "ParsedPeriodOut",
+        "type": "object"
+      },
+      "PatchLineItemOut": {
+        "additionalProperties": false,
+        "properties": {
+          "basis": {
+            "enum": [
+              "reported",
+              "assumed",
+              "derived"
+            ],
+            "title": "Basis",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "item_code": {
+            "title": "Item Code",
+            "type": "string"
+          },
+          "source_id": {
+            "title": "Source Id",
+            "type": "integer"
+          },
+          "value": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Value"
+          }
+        },
+        "required": [
+          "id",
+          "item_code",
+          "value",
+          "basis",
+          "source_id"
+        ],
+        "title": "PatchLineItemOut",
+        "type": "object"
+      },
+      "PeriodAnalysisOut": {
+        "additionalProperties": false,
+        "properties": {
+          "ebitda": {
+            "$ref": "#/components/schemas/EbitdaReconciliation"
+          },
+          "fiscal_year": {
+            "title": "Fiscal Year",
+            "type": "integer"
+          },
+          "metrics": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/DerivedMetricOut"
+            },
+            "title": "Metrics",
+            "type": "object"
+          }
+        },
+        "required": [
+          "fiscal_year",
+          "metrics",
+          "ebitda"
+        ],
+        "title": "PeriodAnalysisOut",
+        "type": "object"
+      },
+      "PeriodOut": {
+        "additionalProperties": false,
+        "properties": {
+          "completeness": {
+            "$ref": "#/components/schemas/CompletenessOut"
+          },
+          "fiscal_year": {
+            "title": "Fiscal Year",
+            "type": "integer"
+          },
+          "line_items": {
+            "items": {
+              "$ref": "#/components/schemas/LineItemOut"
+            },
+            "title": "Line Items",
+            "type": "array"
+          },
+          "period_end": {
+            "title": "Period End",
+            "type": "string"
+          }
+        },
+        "required": [
+          "fiscal_year",
+          "period_end",
+          "line_items",
+          "completeness"
+        ],
+        "title": "PeriodOut",
+        "type": "object"
+      },
+      "PresentationOut": {
+        "additionalProperties": false,
+        "properties": {
+          "basis": {
+            "const": "derived",
+            "title": "Basis",
+            "type": "string"
+          },
+          "years": {
+            "items": {
+              "$ref": "#/components/schemas/PresentationYearOut"
+            },
+            "title": "Years",
+            "type": "array"
+          }
+        },
+        "required": [
+          "basis",
+          "years"
+        ],
+        "title": "PresentationOut",
+        "type": "object"
+      },
+      "PresentationYearOut": {
+        "additionalProperties": false,
+        "properties": {
+          "ebit_margin": {
+            "$ref": "#/components/schemas/MetricOut"
+          },
+          "t": {
+            "title": "T",
+            "type": "integer"
+          },
+          "ufcf_margin": {
+            "$ref": "#/components/schemas/MetricOut"
+          }
+        },
+        "required": [
+          "t",
+          "ebit_margin",
+          "ufcf_margin"
+        ],
+        "title": "PresentationYearOut",
+        "type": "object"
+      },
+      "PreviewOut": {
+        "additionalProperties": false,
+        "properties": {
+          "context": {
+            "$ref": "#/components/schemas/ContextOut"
+          },
+          "draft": {
+            "title": "Draft",
+            "type": "boolean"
+          },
+          "engine_version": {
+            "title": "Engine Version",
+            "type": "string"
+          },
+          "input_hash": {
+            "title": "Input Hash",
+            "type": "string"
+          },
+          "presentation": {
+            "$ref": "#/components/schemas/PresentationOut"
+          },
+          "provenance": {
+            "additionalProperties": true,
+            "title": "Provenance",
+            "type": "object"
+          },
+          "result": {
+            "$ref": "#/components/schemas/DcfResult"
+          },
+          "result_basis": {
+            "const": "derived",
+            "title": "Result Basis",
+            "type": "string"
+          },
+          "warnings": {
+            "items": {
+              "$ref": "#/components/schemas/IssueOut"
+            },
+            "title": "Warnings",
+            "type": "array"
+          }
+        },
+        "required": [
+          "draft",
+          "context",
+          "result",
+          "result_basis",
+          "presentation",
+          "warnings",
+          "engine_version",
+          "input_hash",
+          "provenance"
+        ],
+        "title": "PreviewOut",
+        "type": "object"
+      },
+      "ProjectIn": {
+        "additionalProperties": false,
+        "properties": {
+          "company_id": {
+            "title": "Company Id",
+            "type": "integer"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "name": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "company_id",
+          "name",
+          "description"
+        ],
+        "title": "ProjectIn",
+        "type": "object"
+      },
+      "ProjectOut": {
+        "properties": {
+          "company_id": {
+            "title": "Company Id",
+            "type": "integer"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "company_id",
+          "name",
+          "description"
+        ],
+        "title": "ProjectOut",
+        "type": "object"
+      },
+      "RegisterIn": {
+        "additionalProperties": false,
+        "properties": {
+          "email": {
+            "maxLength": 320,
+            "minLength": 3,
+            "pattern": "^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$",
+            "title": "Email",
+            "type": "string"
+          },
+          "password": {
+            "maxLength": 200,
+            "title": "Password",
+            "type": "string"
+          }
+        },
+        "required": [
+          "email",
+          "password"
+        ],
+        "title": "RegisterIn",
+        "type": "object"
+      },
+      "RsuGrantIn": {
+        "additionalProperties": false,
+        "properties": {
+          "count": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Count"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          }
+        },
+        "required": [
+          "label",
+          "count"
+        ],
+        "title": "RsuGrantIn",
+        "type": "object"
+      },
+      "RunIn": {
+        "additionalProperties": false,
+        "properties": {
+          "label": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Label"
+          }
+        },
+        "title": "RunIn",
+        "type": "object"
+      },
+      "RunOut": {
+        "additionalProperties": false,
+        "properties": {
+          "context": {
+            "$ref": "#/components/schemas/ContextOut"
+          },
+          "created_at": {
+            "title": "Created At",
+            "type": "string"
+          },
+          "engine_compatible": {
+            "title": "Engine Compatible",
+            "type": "boolean"
+          },
+          "engine_version": {
+            "title": "Engine Version",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "input_hash": {
+            "title": "Input Hash",
+            "type": "string"
+          },
+          "inputs": {
+            "additionalProperties": true,
+            "title": "Inputs",
+            "type": "object"
+          },
+          "label": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Label"
+          },
+          "presentation": {
+            "$ref": "#/components/schemas/PresentationOut"
+          },
+          "project_id": {
+            "title": "Project Id",
+            "type": "integer"
+          },
+          "provenance": {
+            "additionalProperties": true,
+            "title": "Provenance",
+            "type": "object"
+          },
+          "result": {
+            "$ref": "#/components/schemas/DcfResult"
+          },
+          "result_basis": {
+            "const": "derived",
+            "title": "Result Basis",
+            "type": "string"
+          },
+          "scenario_id": {
+            "title": "Scenario Id",
+            "type": "integer"
+          },
+          "warnings": {
+            "items": {
+              "$ref": "#/components/schemas/IssueOut"
+            },
+            "title": "Warnings",
+            "type": "array"
+          }
+        },
+        "required": [
+          "context",
+          "result_basis",
+          "presentation",
+          "engine_compatible",
+          "id",
+          "scenario_id",
+          "project_id",
+          "label",
+          "engine_version",
+          "input_hash",
+          "created_at",
+          "inputs",
+          "result",
+          "warnings",
+          "provenance"
+        ],
+        "title": "RunOut",
+        "type": "object"
+      },
+      "RunsPageItemOut": {
+        "additionalProperties": false,
+        "properties": {
+          "company": {
+            "$ref": "#/components/schemas/CompanyRef"
+          },
+          "created_at": {
+            "title": "Created At",
+            "type": "string"
+          },
+          "engine_compatible": {
+            "title": "Engine Compatible",
+            "type": "boolean"
+          },
+          "engine_version": {
+            "title": "Engine Version",
+            "type": "string"
+          },
+          "enterprise_value": {
+            "title": "Enterprise Value",
+            "type": "number"
+          },
+          "equity_value": {
+            "title": "Equity Value",
+            "type": "number"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "input_hash": {
+            "title": "Input Hash",
+            "type": "string"
+          },
+          "label": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Label"
+          },
+          "project": {
+            "$ref": "#/components/schemas/NamedRef"
+          },
+          "scenario": {
+            "$ref": "#/components/schemas/NamedRef"
+          },
+          "valuation_date": {
+            "title": "Valuation Date",
+            "type": "string"
+          },
+          "value_per_share": {
+            "title": "Value Per Share",
+            "type": "number"
+          },
+          "warning_count": {
+            "title": "Warning Count",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "label",
+          "created_at",
+          "engine_version",
+          "engine_compatible",
+          "input_hash",
+          "valuation_date",
+          "company",
+          "project",
+          "scenario",
+          "enterprise_value",
+          "equity_value",
+          "value_per_share",
+          "warning_count"
+        ],
+        "title": "RunsPageItemOut",
+        "type": "object"
+      },
+      "RunsPageOut": {
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/RunsPageItemOut"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "page": {
+            "title": "Page",
+            "type": "integer"
+          },
+          "page_size": {
+            "title": "Page Size",
+            "type": "integer"
+          },
+          "total": {
+            "title": "Total",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "page",
+          "page_size",
+          "total",
+          "items"
+        ],
+        "title": "RunsPageOut",
+        "type": "object"
+      },
+      "SampleLoadOut": {
+        "additionalProperties": false,
+        "properties": {
+          "company_id": {
+            "title": "Company Id",
+            "type": "integer"
+          },
+          "project_id": {
+            "title": "Project Id",
+            "type": "integer"
+          },
+          "scenario_id": {
+            "title": "Scenario Id",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "company_id",
+          "project_id",
+          "scenario_id"
+        ],
+        "title": "SampleLoadOut",
+        "type": "object"
+      },
+      "SampleOut": {
+        "additionalProperties": false,
+        "properties": {
+          "description": {
+            "title": "Description",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "includes": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Includes",
+            "type": "array"
+          },
+          "is_synthetic": {
+            "title": "Is Synthetic",
+            "type": "boolean"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "description",
+          "is_synthetic",
+          "includes"
+        ],
+        "title": "SampleOut",
+        "type": "object"
+      },
+      "ScenarioIn": {
+        "additionalProperties": false,
+        "properties": {
+          "assumptions": {
+            "items": {
+              "$ref": "#/components/schemas/AssumptionIn"
+            },
+            "title": "Assumptions",
+            "type": "array"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "kind": {
+            "enum": [
+              "base",
+              "upside",
+              "downside",
+              "custom"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "name": {
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Name",
+            "type": "string"
+          },
+          "settings": {
+            "$ref": "#/components/schemas/ScenarioSettingsIn"
+          }
+        },
+        "required": [
+          "name",
+          "kind",
+          "settings",
+          "assumptions"
+        ],
+        "title": "ScenarioIn",
+        "type": "object"
+      },
+      "ScenarioOut": {
+        "additionalProperties": false,
+        "properties": {
+          "assumptions": {
+            "items": {
+              "$ref": "#/components/schemas/AssumptionOut"
+            },
+            "title": "Assumptions",
+            "type": "array"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "kind": {
+            "title": "Kind",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "project_id": {
+            "title": "Project Id",
+            "type": "integer"
+          },
+          "settings": {
+            "$ref": "#/components/schemas/ScenarioSettingsOut"
+          }
+        },
+        "required": [
+          "id",
+          "project_id",
+          "name",
+          "kind",
+          "description",
+          "settings",
+          "assumptions"
+        ],
+        "title": "ScenarioOut",
+        "type": "object"
+      },
+      "ScenarioRunOut": {
+        "additionalProperties": false,
+        "properties": {
+          "created_at": {
+            "title": "Created At",
+            "type": "string"
+          },
+          "engine_version": {
+            "title": "Engine Version",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "input_hash": {
+            "title": "Input Hash",
+            "type": "string"
+          },
+          "label": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Label"
+          },
+          "value_per_share": {
+            "title": "Value Per Share",
+            "type": "number"
+          }
+        },
+        "required": [
+          "id",
+          "label",
+          "input_hash",
+          "engine_version",
+          "created_at",
+          "value_per_share"
+        ],
+        "title": "ScenarioRunOut",
+        "type": "object"
+      },
+      "ScenarioSettingsIn": {
+        "additionalProperties": false,
+        "properties": {
+          "debt_value_basis": {
+            "anyOf": [
+              {
+                "enum": [
+                  "market",
+                  "book"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Debt Value Basis"
+          },
+          "include_leases_in_debt": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Include Leases In Debt"
+          },
+          "market_data_date": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Market Data Date"
+          },
+          "market_rationale": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Market Rationale"
+          },
+          "market_source_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Market Source Id"
+          },
+          "share_price": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Share Price"
+          }
+        },
+        "required": [
+          "market_data_date",
+          "share_price",
+          "debt_value_basis",
+          "include_leases_in_debt"
+        ],
+        "title": "ScenarioSettingsIn",
+        "type": "object"
+      },
+      "ScenarioSettingsOut": {
+        "additionalProperties": false,
+        "properties": {
+          "debt_value_basis": {
+            "anyOf": [
+              {
+                "enum": [
+                  "market",
+                  "book"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Debt Value Basis"
+          },
+          "include_leases_in_debt": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Include Leases In Debt"
+          },
+          "market_data_date": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Market Data Date"
+          },
+          "market_rationale": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Market Rationale"
+          },
+          "market_source_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Market Source Id"
+          },
+          "share_price": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Share Price"
+          }
+        },
+        "required": [
+          "market_data_date",
+          "share_price",
+          "debt_value_basis",
+          "include_leases_in_debt",
+          "market_source_id",
+          "market_rationale"
+        ],
+        "title": "ScenarioSettingsOut",
+        "type": "object"
+      },
+      "ScenarioUpdateIn": {
+        "additionalProperties": false,
+        "properties": {
+          "assumptions": {
+            "items": {
+              "$ref": "#/components/schemas/AssumptionIn"
+            },
+            "title": "Assumptions",
+            "type": "array"
+          },
+          "settings": {
+            "$ref": "#/components/schemas/ScenarioSettingsIn"
+          }
+        },
+        "required": [
+          "settings",
+          "assumptions"
+        ],
+        "title": "ScenarioUpdateIn",
+        "type": "object"
+      },
+      "SensitivityCellOut": {
+        "additionalProperties": false,
+        "properties": {
+          "change_abs": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Change Abs"
+          },
+          "change_pct": {
+            "$ref": "#/components/schemas/MetricOut"
+          },
+          "codes": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Codes",
+            "type": "array"
+          },
+          "status": {
+            "enum": [
+              "ok",
+              "invalid"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "value": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Value"
+          }
+        },
+        "required": [
+          "value",
+          "status",
+          "codes",
+          "change_abs",
+          "change_pct"
+        ],
+        "title": "SensitivityCellOut",
+        "type": "object"
+      },
+      "SensitivityIn": {
+        "additionalProperties": false,
+        "properties": {
+          "col": {
+            "$ref": "#/components/schemas/AxisIn"
+          },
+          "output": {
+            "enum": [
+              "value_per_share",
+              "enterprise_value",
+              "equity_value"
+            ],
+            "title": "Output",
+            "type": "string"
+          },
+          "row": {
+            "$ref": "#/components/schemas/AxisIn"
+          }
+        },
+        "required": [
+          "row",
+          "col",
+          "output"
+        ],
+        "title": "SensitivityIn",
+        "type": "object"
+      },
+      "SensitivityOut": {
+        "additionalProperties": false,
+        "properties": {
+          "base_col": {
+            "title": "Base Col",
+            "type": "integer"
+          },
+          "base_matches_run": {
+            "title": "Base Matches Run",
+            "type": "boolean"
+          },
+          "base_row": {
+            "title": "Base Row",
+            "type": "integer"
+          },
+          "base_value": {
+            "title": "Base Value",
+            "type": "number"
+          },
+          "basis": {
+            "const": "derived",
+            "title": "Basis",
+            "type": "string"
+          },
+          "cells": {
+            "items": {
+              "items": {
+                "$ref": "#/components/schemas/SensitivityCellOut"
+              },
+              "type": "array"
+            },
+            "title": "Cells",
+            "type": "array"
+          },
+          "col_values": {
+            "items": {
+              "type": "number"
+            },
+            "title": "Col Values",
+            "type": "array"
+          },
+          "col_variable": {
+            "title": "Col Variable",
+            "type": "string"
+          },
+          "context": {
+            "$ref": "#/components/schemas/ContextOut"
+          },
+          "engine_version": {
+            "title": "Engine Version",
+            "type": "string"
+          },
+          "input_hash": {
+            "title": "Input Hash",
+            "type": "string"
+          },
+          "output": {
+            "title": "Output",
+            "type": "string"
+          },
+          "row_values": {
+            "items": {
+              "type": "number"
+            },
+            "title": "Row Values",
+            "type": "array"
+          },
+          "row_variable": {
+            "title": "Row Variable",
+            "type": "string"
+          },
+          "run_id": {
+            "title": "Run Id",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "run_id",
+          "input_hash",
+          "engine_version",
+          "basis",
+          "context",
+          "row_variable",
+          "col_variable",
+          "output",
+          "row_values",
+          "col_values",
+          "base_row",
+          "base_col",
+          "base_value",
+          "base_matches_run",
+          "cells"
+        ],
+        "title": "SensitivityOut",
+        "type": "object"
+      },
+      "Severity": {
+        "enum": [
+          "info",
+          "warning",
+          "error"
+        ],
+        "title": "Severity",
+        "type": "string"
+      },
+      "ShareCapitalInputsIn": {
+        "additionalProperties": false,
+        "properties": {
+          "basic_shares": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Basic Shares"
+          },
+          "convertibles": {
+            "items": {
+              "$ref": "#/components/schemas/ConvertibleInstrumentIn"
+            },
+            "title": "Convertibles",
+            "type": "array"
+          },
+          "options": {
+            "items": {
+              "$ref": "#/components/schemas/OptionTrancheIn"
+            },
+            "title": "Options",
+            "type": "array"
+          },
+          "rsus": {
+            "items": {
+              "$ref": "#/components/schemas/RsuGrantIn"
+            },
+            "title": "Rsus",
+            "type": "array"
+          }
+        },
+        "required": [
+          "basic_shares",
+          "options",
+          "rsus",
+          "convertibles"
+        ],
+        "title": "ShareCapitalInputsIn",
+        "type": "object"
+      },
+      "SourceIn": {
+        "additionalProperties": false,
+        "description": "Analysts can create document sources to back reported values (A4). csv_import and\nsynthetic sources are created by the system only.",
+        "properties": {
+          "kind": {
+            "enum": [
+              "filing",
+              "market_data"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "maxLength": 2000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          },
+          "reference": {
+            "anyOf": [
+              {
+                "maxLength": 300,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reference"
+          },
+          "title": {
+            "maxLength": 300,
+            "minLength": 1,
+            "title": "Title",
+            "type": "string"
+          },
+          "uri": {
+            "anyOf": [
+              {
+                "maxLength": 1000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Uri"
+          }
+        },
+        "required": [
+          "kind",
+          "title"
+        ],
+        "title": "SourceIn",
+        "type": "object"
+      },
+      "SourceOut": {
+        "additionalProperties": false,
+        "properties": {
+          "created_at": {
+            "title": "Created At",
+            "type": "string"
+          },
+          "file_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "File Name"
+          },
+          "file_sha256": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "File Sha256"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "kind": {
+            "title": "Kind",
+            "type": "string"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "uri": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Uri"
+          }
+        },
+        "required": [
+          "id",
+          "kind",
+          "title",
+          "file_name",
+          "file_sha256",
+          "uri",
+          "notes",
+          "created_at"
+        ],
+        "title": "SourceOut",
+        "type": "object"
+      },
+      "SourceRefIn": {
+        "additionalProperties": false,
+        "description": "The document a reported correction comes from; stored as a ``filing`` source.",
+        "properties": {
+          "reference": {
+            "anyOf": [
+              {
+                "maxLength": 300,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reference"
+          },
+          "title": {
+            "maxLength": 300,
+            "minLength": 1,
+            "title": "Title",
+            "type": "string"
+          },
+          "uri": {
+            "anyOf": [
+              {
+                "maxLength": 1000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Uri"
+          }
+        },
+        "required": [
+          "title"
+        ],
+        "title": "SourceRefIn",
+        "type": "object"
+      },
+      "Status": {
+        "enum": [
+          "ok",
+          "missing",
+          "not_meaningful"
+        ],
+        "title": "Status",
+        "type": "string"
+      },
+      "TerminalValue": {
+        "additionalProperties": false,
+        "properties": {
+          "final_ufcf": {
+            "title": "Final Ufcf",
+            "type": "number"
+          },
+          "growth": {
+            "title": "Growth",
+            "type": "number"
+          },
+          "issues": {
+            "items": {
+              "$ref": "#/components/schemas/Issue"
+            },
+            "title": "Issues",
+            "type": "array"
+          },
+          "value": {
+            "title": "Value",
+            "type": "number"
+          },
+          "wacc": {
+            "title": "Wacc",
+            "type": "number"
+          }
+        },
+        "required": [
+          "final_ufcf",
+          "growth",
+          "wacc",
+          "value",
+          "issues"
+        ],
+        "title": "TerminalValue",
+        "type": "object"
+      },
+      "TokenOut": {
+        "properties": {
+          "access_token": {
+            "title": "Access Token",
+            "type": "string"
+          },
+          "expires_at": {
+            "format": "date-time",
+            "title": "Expires At",
+            "type": "string"
+          },
+          "token_type": {
+            "const": "bearer",
+            "default": "bearer",
+            "title": "Token Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "access_token",
+          "expires_at"
+        ],
+        "title": "TokenOut",
+        "type": "object"
+      },
+      "UfcfLine": {
+        "additionalProperties": false,
+        "properties": {
+          "capex": {
+            "title": "Capex",
+            "type": "number"
+          },
+          "change_in_nwc": {
+            "title": "Change In Nwc",
+            "type": "number"
+          },
+          "da": {
+            "title": "Da",
+            "type": "number"
+          },
+          "ebit": {
+            "title": "Ebit",
+            "type": "number"
+          },
+          "issues": {
+            "items": {
+              "$ref": "#/components/schemas/Issue"
+            },
+            "title": "Issues",
+            "type": "array"
+          },
+          "nopat": {
+            "title": "Nopat",
+            "type": "number"
+          },
+          "t": {
+            "title": "T",
+            "type": "integer"
+          },
+          "taxes_on_ebit": {
+            "title": "Taxes On Ebit",
+            "type": "number"
+          },
+          "ufcf": {
+            "title": "Ufcf",
+            "type": "number"
+          }
+        },
+        "required": [
+          "t",
+          "ebit",
+          "taxes_on_ebit",
+          "nopat",
+          "da",
+          "capex",
+          "change_in_nwc",
+          "ufcf",
+          "issues"
+        ],
+        "title": "UfcfLine",
+        "type": "object"
+      },
+      "UserOut": {
+        "properties": {
+          "email": {
+            "title": "Email",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "email"
+        ],
+        "title": "UserOut",
+        "type": "object"
+      },
+      "ValidationError": {
+        "properties": {
+          "ctx": {
+            "title": "Context",
+            "type": "object"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "title": "Location",
+            "type": "array"
+          },
+          "msg": {
+            "title": "Message",
+            "type": "string"
+          },
+          "type": {
+            "title": "Error Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError",
+        "type": "object"
+      },
+      "ValuationDatesIn": {
+        "additionalProperties": false,
+        "properties": {
+          "market_data_date": {
+            "format": "date",
+            "title": "Market Data Date",
+            "type": "string"
+          },
+          "statement_date": {
+            "format": "date",
+            "title": "Statement Date",
+            "type": "string"
+          },
+          "valuation_date": {
+            "format": "date",
+            "title": "Valuation Date",
+            "type": "string"
+          }
+        },
+        "required": [
+          "statement_date",
+          "valuation_date",
+          "market_data_date"
+        ],
+        "title": "ValuationDatesIn",
+        "type": "object"
+      },
+      "VerifyOut": {
+        "additionalProperties": false,
+        "properties": {
+          "differing_paths": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Differing Paths",
+            "type": "array"
+          },
+          "engine_version_at_run": {
+            "title": "Engine Version At Run",
+            "type": "string"
+          },
+          "engine_version_changed": {
+            "title": "Engine Version Changed",
+            "type": "boolean"
+          },
+          "engine_version_now": {
+            "title": "Engine Version Now",
+            "type": "string"
+          },
+          "identical": {
+            "title": "Identical",
+            "type": "boolean"
+          },
+          "input_hash_matches": {
+            "title": "Input Hash Matches",
+            "type": "boolean"
+          },
+          "inputs_round_trip_exact": {
+            "title": "Inputs Round Trip Exact",
+            "type": "boolean"
+          },
+          "run_id": {
+            "title": "Run Id",
+            "type": "integer"
+          },
+          "value_per_share": {
+            "$ref": "#/components/schemas/VerifyValuesOut"
+          }
+        },
+        "required": [
+          "run_id",
+          "identical",
+          "inputs_round_trip_exact",
+          "input_hash_matches",
+          "engine_version_at_run",
+          "engine_version_now",
+          "engine_version_changed",
+          "differing_paths",
+          "value_per_share"
+        ],
+        "title": "VerifyOut",
+        "type": "object"
+      },
+      "VerifyValuesOut": {
+        "additionalProperties": false,
+        "properties": {
+          "recomputed": {
+            "title": "Recomputed",
+            "type": "number"
+          },
+          "stored": {
+            "title": "Stored",
+            "type": "number"
+          }
+        },
+        "required": [
+          "stored",
+          "recomputed"
+        ],
+        "title": "VerifyValuesOut",
+        "type": "object"
+      },
+      "WaccAssumptionsIn": {
+        "additionalProperties": false,
+        "properties": {
+          "cost_of_preferred": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cost Of Preferred"
+          },
+          "debt_value_basis": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/DebtValueBasis"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "equity_risk_premium": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Equity Risk Premium"
+          },
+          "levered_beta": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Levered Beta"
+          },
+          "pre_tax_cost_of_debt": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Pre Tax Cost Of Debt"
+          },
+          "risk_free_rate": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Risk Free Rate"
+          },
+          "size_premium": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Size Premium"
+          },
+          "target_debt_to_capital": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Target Debt To Capital"
+          }
+        },
+        "required": [
+          "risk_free_rate",
+          "levered_beta",
+          "equity_risk_premium",
+          "pre_tax_cost_of_debt",
+          "size_premium",
+          "debt_value_basis",
+          "cost_of_preferred",
+          "target_debt_to_capital"
+        ],
+        "title": "WaccAssumptionsIn",
+        "type": "object"
+      },
+      "WaccResult": {
+        "additionalProperties": false,
+        "properties": {
+          "after_tax_cost_of_debt": {
+            "title": "After Tax Cost Of Debt",
+            "type": "number"
+          },
+          "cost_of_equity": {
+            "title": "Cost Of Equity",
+            "type": "number"
+          },
+          "cost_of_preferred": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cost Of Preferred"
+          },
+          "issues": {
+            "items": {
+              "$ref": "#/components/schemas/Issue"
+            },
+            "title": "Issues",
+            "type": "array"
+          },
+          "wacc": {
+            "title": "Wacc",
+            "type": "number"
+          },
+          "weight_debt": {
+            "title": "Weight Debt",
+            "type": "number"
+          },
+          "weight_equity": {
+            "title": "Weight Equity",
+            "type": "number"
+          },
+          "weight_preferred": {
+            "title": "Weight Preferred",
+            "type": "number"
+          }
+        },
+        "required": [
+          "cost_of_equity",
+          "after_tax_cost_of_debt",
+          "cost_of_preferred",
+          "weight_equity",
+          "weight_debt",
+          "weight_preferred",
+          "wacc",
+          "issues"
+        ],
+        "title": "WaccResult",
+        "type": "object"
+      }
+    },
+    "securitySchemes": {
+      "HTTPBearer": {
+        "scheme": "bearer",
+        "type": "http"
+      }
+    }
+  },
+  "info": {
+    "description": "M&A valuation engine API. All sample data is synthetic.",
+    "title": "DealForge API",
+    "version": "0.3.0"
+  },
+  "openapi": "3.1.0",
+  "paths": {
+    "/api/v1/auth/logout": {
+      "post": {
+        "operationId": "logout_api_v1_auth_logout_post",
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Logout",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/api/v1/auth/me": {
+      "get": {
+        "operationId": "me_api_v1_auth_me_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Me",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/api/v1/auth/register": {
+      "post": {
+        "operationId": "register_api_v1_auth_register_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegisterIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Register",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/api/v1/auth/token": {
+      "post": {
+        "operationId": "token_api_v1_auth_token_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TokenOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Token",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/api/v1/calculate/dcf": {
+      "post": {
+        "description": "Stateless DCF: exactly the engine's result for exactly these inputs. Nothing is saved.",
+        "operationId": "calculate_dcf_api_v1_calculate_dcf_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DcfInputsIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DcfResult",
+                  "additionalProperties": true,
+                  "title": "Response Calculate Dcf Api V1 Calculate Dcf Post",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Calculate Dcf",
+        "tags": [
+          "valuations"
+        ]
+      }
+    },
+    "/api/v1/companies": {
+      "get": {
+        "operationId": "list_companies_api_v1_companies_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/CompanyOut"
+                  },
+                  "title": "Response List Companies Api V1 Companies Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "List Companies",
+        "tags": [
+          "companies"
+        ]
+      },
+      "post": {
+        "operationId": "create_company_api_v1_companies_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CompanyIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CompanyOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Create Company",
+        "tags": [
+          "companies"
+        ]
+      }
+    },
+    "/api/v1/companies/{company_id}": {
+      "get": {
+        "operationId": "get_company_api_v1_companies__company_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "company_id",
+            "required": true,
+            "schema": {
+              "title": "Company Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CompanyOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Get Company",
+        "tags": [
+          "companies"
+        ]
+      }
+    },
+    "/api/v1/companies/{company_id}/financials": {
+      "get": {
+        "operationId": "get_financials_api_v1_companies__company_id__financials_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "company_id",
+            "required": true,
+            "schema": {
+              "title": "Company Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FinancialsOut",
+                  "additionalProperties": true,
+                  "title": "Response Get Financials Api V1 Companies  Company Id  Financials Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Get Financials",
+        "tags": [
+          "companies"
+        ]
+      }
+    },
+    "/api/v1/companies/{company_id}/financials/import": {
+      "post": {
+        "operationId": "import_financials_api_v1_companies__company_id__financials_import_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "company_id",
+            "required": true,
+            "schema": {
+              "title": "Company Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_import_financials_api_v1_companies__company_id__financials_import_post"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ImportOut",
+                  "additionalProperties": true,
+                  "title": "Response Import Financials Api V1 Companies  Company Id  Financials Import Post",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Import Financials",
+        "tags": [
+          "companies"
+        ]
+      }
+    },
+    "/api/v1/companies/{company_id}/historical-analysis": {
+      "get": {
+        "operationId": "get_historical_analysis_api_v1_companies__company_id__historical_analysis_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "company_id",
+            "required": true,
+            "schema": {
+              "title": "Company Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HistoricalAnalysisOut",
+                  "additionalProperties": true,
+                  "title": "Response Get Historical Analysis Api V1 Companies  Company Id  Historical Analysis Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Get Historical Analysis",
+        "tags": [
+          "companies"
+        ]
+      }
+    },
+    "/api/v1/companies/{company_id}/share-instruments": {
+      "get": {
+        "operationId": "get_instruments_api_v1_companies__company_id__share_instruments_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "company_id",
+            "required": true,
+            "schema": {
+              "title": "Company Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/InstrumentOut",
+                    "additionalProperties": true,
+                    "type": "object"
+                  },
+                  "title": "Response 200 Get Instruments Api V1 Companies  Company Id  Share Instruments Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Get Instruments",
+        "tags": [
+          "companies"
+        ]
+      },
+      "put": {
+        "operationId": "put_instruments_api_v1_companies__company_id__share_instruments_put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "company_id",
+            "required": true,
+            "schema": {
+              "title": "Company Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InstrumentsIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InstrumentsPutOut",
+                  "additionalProperties": true,
+                  "title": "Response Put Instruments Api V1 Companies  Company Id  Share Instruments Put",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Put Instruments",
+        "tags": [
+          "companies"
+        ]
+      }
+    },
+    "/api/v1/dashboard": {
+      "get": {
+        "operationId": "get_dashboard_api_v1_dashboard_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DashboardOut",
+                  "additionalProperties": true,
+                  "title": "Response Get Dashboard Api V1 Dashboard Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Success"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Get Dashboard",
+        "tags": [
+          "insights"
+        ]
+      }
+    },
+    "/api/v1/health": {
+      "get": {
+        "operationId": "health_api_v1_health_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthOut",
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "title": "Response Health Api V1 Health Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Success"
+          }
+        },
+        "summary": "Health"
+      }
+    },
+    "/api/v1/line-items": {
+      "get": {
+        "operationId": "line_item_dictionary_api_v1_line_items_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/LineItemDefOut",
+                    "additionalProperties": true,
+                    "type": "object"
+                  },
+                  "title": "Response 200 Line Item Dictionary Api V1 Line Items Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Success"
+          }
+        },
+        "summary": "Line Item Dictionary",
+        "tags": [
+          "companies"
+        ]
+      }
+    },
+    "/api/v1/line-items/{line_item_id}": {
+      "patch": {
+        "operationId": "patch_line_item_api_v1_line_items__line_item_id__patch",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "line_item_id",
+            "required": true,
+            "schema": {
+              "title": "Line Item Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LineItemPatchIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PatchLineItemOut",
+                  "additionalProperties": true,
+                  "title": "Response Patch Line Item Api V1 Line Items  Line Item Id  Patch",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Patch Line Item",
+        "tags": [
+          "companies"
+        ]
+      }
+    },
+    "/api/v1/projects": {
+      "get": {
+        "operationId": "list_projects_api_v1_projects_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ProjectOut"
+                  },
+                  "title": "Response List Projects Api V1 Projects Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "List Projects",
+        "tags": [
+          "valuations"
+        ]
+      },
+      "post": {
+        "operationId": "create_project_api_v1_projects_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProjectIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Create Project",
+        "tags": [
+          "valuations"
+        ]
+      }
+    },
+    "/api/v1/projects/{project_id}": {
+      "get": {
+        "operationId": "get_project_api_v1_projects__project_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "title": "Project Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Get Project",
+        "tags": [
+          "valuations"
+        ]
+      }
+    },
+    "/api/v1/projects/{project_id}/scenarios": {
+      "get": {
+        "operationId": "list_scenarios_api_v1_projects__project_id__scenarios_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "title": "Project Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ScenarioOut",
+                    "additionalProperties": true,
+                    "type": "object"
+                  },
+                  "title": "Response 200 List Scenarios Api V1 Projects  Project Id  Scenarios Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "List Scenarios",
+        "tags": [
+          "valuations"
+        ]
+      },
+      "post": {
+        "operationId": "create_scenario_api_v1_projects__project_id__scenarios_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "title": "Project Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ScenarioIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScenarioOut",
+                  "additionalProperties": true,
+                  "title": "Response Create Scenario Api V1 Projects  Project Id  Scenarios Post",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Create Scenario",
+        "tags": [
+          "valuations"
+        ]
+      }
+    },
+    "/api/v1/runs": {
+      "get": {
+        "description": "Every frozen run of the current user. Values are read verbatim from the stored results\n(never recomputed), so they are available whatever the current engine version (R1).",
+        "operationId": "list_all_runs_api_v1_runs_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "page",
+            "required": false,
+            "schema": {
+              "default": 1,
+              "minimum": 1,
+              "title": "Page",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "page_size",
+            "required": false,
+            "schema": {
+              "default": 25,
+              "maximum": 100,
+              "minimum": 1,
+              "title": "Page Size",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "company_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Company Id"
+            }
+          },
+          {
+            "in": "query",
+            "name": "project_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Project Id"
+            }
+          },
+          {
+            "in": "query",
+            "name": "scenario_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Scenario Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RunsPageOut",
+                  "additionalProperties": true,
+                  "title": "Response List All Runs Api V1 Runs Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "List All Runs",
+        "tags": [
+          "insights"
+        ]
+      }
+    },
+    "/api/v1/runs/{run_id}": {
+      "get": {
+        "operationId": "get_run_api_v1_runs__run_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "run_id",
+            "required": true,
+            "schema": {
+              "title": "Run Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RunOut",
+                  "additionalProperties": true,
+                  "title": "Response Get Run Api V1 Runs  Run Id  Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Get Run",
+        "tags": [
+          "valuations"
+        ]
+      }
+    },
+    "/api/v1/runs/{run_id}/sensitivity": {
+      "post": {
+        "operationId": "run_sensitivity_api_v1_runs__run_id__sensitivity_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "run_id",
+            "required": true,
+            "schema": {
+              "title": "Run Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SensitivityIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SensitivityOut",
+                  "additionalProperties": true,
+                  "title": "Response Run Sensitivity Api V1 Runs  Run Id  Sensitivity Post",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Run Sensitivity",
+        "tags": [
+          "insights"
+        ]
+      }
+    },
+    "/api/v1/runs/{run_id}/verify": {
+      "post": {
+        "operationId": "verify_run_api_v1_runs__run_id__verify_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "run_id",
+            "required": true,
+            "schema": {
+              "title": "Run Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VerifyOut",
+                  "additionalProperties": true,
+                  "title": "Response Verify Run Api V1 Runs  Run Id  Verify Post",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Verify Run",
+        "tags": [
+          "valuations"
+        ]
+      }
+    },
+    "/api/v1/samples": {
+      "get": {
+        "operationId": "list_samples_api_v1_samples_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/SampleOut",
+                    "additionalProperties": true,
+                    "type": "object"
+                  },
+                  "title": "Response 200 List Samples Api V1 Samples Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Success"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "List Samples",
+        "tags": [
+          "insights"
+        ]
+      }
+    },
+    "/api/v1/samples/{sample_id}/load": {
+      "post": {
+        "operationId": "load_sample_api_v1_samples__sample_id__load_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "sample_id",
+            "required": true,
+            "schema": {
+              "title": "Sample Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SampleLoadOut",
+                  "additionalProperties": true,
+                  "title": "Response Load Sample Api V1 Samples  Sample Id  Load Post",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Load Sample",
+        "tags": [
+          "insights"
+        ]
+      }
+    },
+    "/api/v1/scenarios/{scenario_id}": {
+      "get": {
+        "operationId": "get_scenario_api_v1_scenarios__scenario_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "scenario_id",
+            "required": true,
+            "schema": {
+              "title": "Scenario Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScenarioOut",
+                  "additionalProperties": true,
+                  "title": "Response Get Scenario Api V1 Scenarios  Scenario Id  Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Get Scenario",
+        "tags": [
+          "valuations"
+        ]
+      },
+      "put": {
+        "operationId": "update_scenario_api_v1_scenarios__scenario_id__put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "scenario_id",
+            "required": true,
+            "schema": {
+              "title": "Scenario Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ScenarioUpdateIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScenarioOut",
+                  "additionalProperties": true,
+                  "title": "Response Update Scenario Api V1 Scenarios  Scenario Id  Put",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Update Scenario",
+        "tags": [
+          "valuations"
+        ]
+      }
+    },
+    "/api/v1/scenarios/{scenario_id}/clone": {
+      "post": {
+        "operationId": "clone_scenario_api_v1_scenarios__scenario_id__clone_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "scenario_id",
+            "required": true,
+            "schema": {
+              "title": "Scenario Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CloneIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScenarioOut",
+                  "additionalProperties": true,
+                  "title": "Response Clone Scenario Api V1 Scenarios  Scenario Id  Clone Post",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Clone Scenario",
+        "tags": [
+          "valuations"
+        ]
+      }
+    },
+    "/api/v1/scenarios/{scenario_id}/preview": {
+      "post": {
+        "description": "Without a body: the saved scenario. With ``{settings, assumptions}``: an unsaved draft,\nvalidated like a save but never written (no rows, no audit event; D4-04).",
+        "operationId": "preview_api_v1_scenarios__scenario_id__preview_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "scenario_id",
+            "required": true,
+            "schema": {
+              "title": "Scenario Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "anyOf": [
+                  {
+                    "$ref": "#/components/schemas/ScenarioUpdateIn"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Draft"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PreviewOut",
+                  "additionalProperties": true,
+                  "title": "Response Preview Api V1 Scenarios  Scenario Id  Preview Post",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Preview",
+        "tags": [
+          "valuations"
+        ]
+      }
+    },
+    "/api/v1/scenarios/{scenario_id}/runs": {
+      "get": {
+        "operationId": "list_runs_api_v1_scenarios__scenario_id__runs_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "scenario_id",
+            "required": true,
+            "schema": {
+              "title": "Scenario Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ScenarioRunOut",
+                    "additionalProperties": true,
+                    "type": "object"
+                  },
+                  "title": "Response 200 List Runs Api V1 Scenarios  Scenario Id  Runs Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "List Runs",
+        "tags": [
+          "valuations"
+        ]
+      },
+      "post": {
+        "operationId": "create_run_api_v1_scenarios__scenario_id__runs_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "scenario_id",
+            "required": true,
+            "schema": {
+              "title": "Scenario Id",
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Mandatory (A7). A new random key per user action; reuse it to retry.",
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": true,
+            "schema": {
+              "description": "Mandatory (A7). A new random key per user action; reuse it to retry.",
+              "maxLength": 128,
+              "minLength": 8,
+              "pattern": "^[A-Za-z0-9_-]+$",
+              "title": "Idempotency-Key",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RunIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RunOut"
+                }
+              }
+            },
+            "description": "Replay: this Idempotency-Key already froze this request; the same run is returned (header Idempotent-Replayed: true)."
+          },
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RunOut"
+                }
+              }
+            },
+            "description": "The new frozen run."
+          },
+          "409": {
+            "description": "IDEMPOTENCY_KEY_REUSED: the key was used for another request."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "503": {
+            "description": "DATABASE_BUSY: nothing saved; retry with the same key."
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Create Run",
+        "tags": [
+          "valuations"
+        ]
+      }
+    },
+    "/api/v1/sources": {
+      "post": {
+        "operationId": "create_source_api_v1_sources_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SourceIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SourceOut",
+                  "additionalProperties": true,
+                  "title": "Response Create Source Api V1 Sources Post",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Create Source",
+        "tags": [
+          "insights"
+        ]
+      }
+    },
+    "/api/v1/sources/{source_id}": {
+      "get": {
+        "operationId": "get_source_api_v1_sources__source_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "source_id",
+            "required": true,
+            "schema": {
+              "title": "Source Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SourceOut",
+                  "additionalProperties": true,
+                  "title": "Response Get Source Api V1 Sources  Source Id  Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Get Source",
+        "tags": [
+          "insights"
+        ]
+      }
+    }
+  }
+}

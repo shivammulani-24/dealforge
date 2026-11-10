@@ -15,7 +15,8 @@ memo. It is built to be financially correct, transparent and testable.
 | 2 | Financial calculation engine and tests ([docs/engine.md](docs/engine.md)) | Approved |
 | 2.5 | Verification and readiness: [independent verification](docs/verification/independent-verification.md), [API contract](docs/api-contract.md), [limitations register](docs/limitations-register.md) | Complete |
 | 3 | Data layer and API ([docs/phase-3-design.md](docs/phase-3-design.md)) | Built; awaiting review |
-| 4+ | UI, memo | Not started |
+| 4 (F0) | Backend for the frontend: liquidity ratios, frozen-run sensitivity, idempotent freezes, dashboard, runs list, samples, typed OpenAPI ([docs/phase-4-plan.md](docs/phase-4-plan.md)) | Built; awaiting review |
+| 4 (F1+) | Frontend, memo | Not started |
 
 ## The engine
 

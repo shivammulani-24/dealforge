@@ -5,11 +5,13 @@ from __future__ import annotations
 from fastapi import FastAPI
 
 from app.api import errors
-from app.api.v1 import auth, companies, valuations
+from app.api.spa import install_spa
+from app.api.v1 import auth, companies, insights, valuations
 from app.config import Settings
 from app.db.migrate import upgrade
 from app.db.session import make_engine, make_session_factory, make_write_engine
 from app.engine.version import ENGINE_VERSION
+from app.schemas.responses import HealthOut, documented
 
 
 def create_app(settings: Settings | None = None, *, migrate: bool = True) -> FastAPI:
@@ -29,11 +31,14 @@ def create_app(settings: Settings | None = None, *, migrate: bool = True) -> Fas
     # Write transactions that must check-then-insert atomically start with BEGIN IMMEDIATE
     app.state.write_session_factory = make_session_factory(make_write_engine(app.state.db_engine))
     errors.install(app)
-    for r in (auth.router, companies.router, valuations.router):
+    for r in (auth.router, companies.router, valuations.router, insights.router):
         app.include_router(r, prefix="/api/v1")
 
-    @app.get("/api/v1/health")
+    @app.get("/api/v1/health", responses=documented(HealthOut))
     def health() -> dict[str, str]:
         return {"status": "ok", "engine_version": ENGINE_VERSION}
+
+    if settings.frontend_dist:
+        install_spa(app, settings.frontend_dist)  # last: after every API route (B11)
 
     return app
