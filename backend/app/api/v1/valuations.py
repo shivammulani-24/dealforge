@@ -1,13 +1,14 @@
 from __future__ import annotations
 
 import json
-from typing import Any
+from typing import Annotated, Any
 
-from fastapi import APIRouter, status
+from fastapi import APIRouter, Header, Request, status
+from fastapi.responses import JSONResponse
 from sqlalchemy import select
 
 from app.api.deps import SessionDep, UserDep
-from app.db.models import Scenario, ValuationProject, ValuationRun
+from app.db.models import Scenario, ValuationProject, ValuationRun, iso_utc
 from app.engine.hashing import canonical_json
 from app.engine.valuation import run_dcf
 from app.schemas.api import CloneIn, ProjectIn, ProjectOut, RunIn, ScenarioIn, ScenarioUpdateIn
@@ -129,10 +130,52 @@ def preview(scenario_id: int, session: SessionDep, user: UserDep) -> dict[str, A
     return svc.preview(session, svc.get_scenario(session, user, scenario_id))
 
 
-@router.post("/scenarios/{scenario_id}/runs", status_code=status.HTTP_201_CREATED)
-def create_run(scenario_id: int, body: RunIn, session: SessionDep, user: UserDep) -> dict[str, Any]:
-    run = svc.freeze_run(session, user, svc.get_scenario(session, user, scenario_id), body.label)
-    return svc.run_payload(run)
+IDEMPOTENCY_KEY_PATTERN = r"^[A-Za-z0-9_-]+$"
+
+
+@router.post(
+    "/scenarios/{scenario_id}/runs",
+    status_code=status.HTTP_201_CREATED,
+    responses={
+        200: {
+            "description": "Replay: this Idempotency-Key already froze this request; the "
+            "same run is returned (header Idempotent-Replayed: true)."
+        },
+        409: {"description": "IDEMPOTENCY_KEY_REUSED: the key was used for another request."},
+        503: {"description": "DATABASE_BUSY: nothing saved; retry with the same key."},
+    },
+)
+def create_run(
+    scenario_id: int,
+    body: RunIn,
+    session: SessionDep,
+    user: UserDep,
+    request: Request,
+    idempotency_key: Annotated[
+        str,
+        Header(
+            alias="Idempotency-Key",
+            min_length=8,
+            max_length=128,
+            pattern=IDEMPOTENCY_KEY_PATTERN,
+            description="Mandatory (A7). A new random key per user action; reuse it to retry.",
+        ),
+    ],
+) -> JSONResponse:
+    scenario = svc.get_scenario(session, user, scenario_id)
+    run, replayed = svc.freeze_run(
+        session,
+        request.app.state.write_session_factory,
+        user,
+        scenario,
+        body.label,
+        idempotency_key,
+    )
+    return JSONResponse(
+        status_code=status.HTTP_200_OK if replayed else status.HTTP_201_CREATED,
+        content=svc.run_payload(run),
+        headers={"Idempotent-Replayed": "true"} if replayed else None,
+    )
 
 
 @router.get("/scenarios/{scenario_id}/runs")
@@ -147,7 +190,7 @@ def list_runs(scenario_id: int, session: SessionDep, user: UserDep) -> list[dict
             "label": r.label,
             "input_hash": r.input_hash,
             "engine_version": r.engine_version,
-            "created_at": r.created_at.isoformat(),
+            "created_at": iso_utc(r.created_at),
             "value_per_share": json.loads(r.result_json)["per_share"]["value_per_share"],
         }
         for r in rows

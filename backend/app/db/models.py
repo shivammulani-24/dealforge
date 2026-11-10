@@ -16,6 +16,7 @@ from sqlalchemy import (
     DateTime,
     Float,
     ForeignKey,
+    Index,
     Integer,
     String,
     Text,
@@ -27,6 +28,13 @@ from sqlalchemy.orm import DeclarativeBase, Mapped, Session, mapped_column, rela
 
 def utcnow() -> datetime:
     return datetime.now(UTC)
+
+
+def iso_utc(dt: datetime) -> str:
+    """One rendering for stored timestamps. SQLite returns them without tzinfo although they are
+    written as UTC, so a just-created object and the same row read back must render alike."""
+    aware = dt if dt.tzinfo is not None else dt.replace(tzinfo=UTC)
+    return aware.astimezone(UTC).isoformat()
 
 
 class Base(DeclarativeBase):
@@ -175,6 +183,8 @@ class Scenario(Base):
     debt_value_basis: Mapped[str | None] = mapped_column(String(10))  # market|book
     include_leases_in_debt: Mapped[bool | None] = mapped_column(Boolean)
     market_source_id: Mapped[int | None] = mapped_column(ForeignKey("sources.id"))
+    # A5: required when share_price is set without a market source (enforced by trigger, 0002)
+    market_rationale: Mapped[str | None] = mapped_column(Text)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=utcnow, onupdate=utcnow
@@ -207,6 +217,10 @@ class ValuationRun(Base):
     """Frozen, immutable record of one DCF execution (P3-04)."""
 
     __tablename__ = "valuation_runs"
+    __table_args__ = (
+        Index("uq_runs_owner_idempotency", "created_by", "idempotency_key", unique=True),
+        Index("ix_runs_owner_created", "created_by", "created_at"),
+    )
     id: Mapped[int] = mapped_column(primary_key=True)
     scenario_id: Mapped[int] = mapped_column(ForeignKey("scenarios.id"))
     project_id: Mapped[int] = mapped_column(ForeignKey("valuation_projects.id"))
@@ -219,10 +233,16 @@ class ValuationRun(Base):
     provenance: Mapped[dict[str, Any]] = mapped_column(JSON)
     warnings: Mapped[list[Any]] = mapped_column(JSON)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+    # A7/D4-10: per-user idempotency key and sha256 of the canonical request (scenario, label)
+    idempotency_key: Mapped[str | None] = mapped_column(String(128))
+    request_fingerprint: Mapped[str | None] = mapped_column(String(80))
+    # Which DcfInputs reader the frozen inputs need (LIM-22)
+    inputs_schema_version: Mapped[int] = mapped_column(Integer, server_default="1", default=1)
 
 
 class AuditEvent(Base):
     __tablename__ = "audit_events"
+    __table_args__ = (Index("ix_audit_user_created", "user_id", "created_at"),)
     id: Mapped[int] = mapped_column(primary_key=True)
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
     entity: Mapped[str] = mapped_column(String(40))

@@ -78,6 +78,7 @@ async def import_financials(
     currency: Annotated[str, Form()],
     scale: Annotated[str, Form()],
     basis: Annotated[Literal["reported", "assumed"], Form()],
+    rationale: Annotated[str | None, Form()] = None,  # A5: required when basis=assumed
     dry_run: Annotated[bool, Form()] = True,
     replace: Annotated[bool, Form()] = False,
 ) -> dict[str, Any]:
@@ -95,7 +96,9 @@ async def import_financials(
     payload = _preview_payload(preview)
     if dry_run:
         return {"committed": False, "preview": payload}
-    periods = fin.commit_import(session, user, company, preview, basis=basis, replace=replace)
+    periods = fin.commit_import(
+        session, user, company, preview, basis=basis, replace=replace, rationale=rationale
+    )
     return {"committed": True, "fiscal_years": [p.fiscal_year for p in periods], "preview": payload}
 
 
@@ -148,14 +151,38 @@ def patch_line_item(
         raise NotFound(f"Line item {line_item_id} not found.")
     if body.value is not None and ITEMS[li.item_code].magnitude and body.value < 0:
         raise Conflict(f"{li.item_code} is a positive magnitude (D-02).")
-    src = Source(
-        owner_id=user.id, kind="manual", title=f"Manual correction: {li.item_code}", notes=body.note
-    )
+    if body.basis == "reported":
+        assert body.source is not None  # schema-validated
+        src = Source(
+            owner_id=user.id,
+            kind="filing",
+            title=body.source.title,
+            uri=body.source.uri,
+            notes=body.source.reference,
+        )
+        note = f"Reported correction from: {body.source.title}" + (
+            f" ({body.source.reference})" if body.source.reference else ""
+        )
+        ref = body.source.reference or "filing"
+    else:
+        assert body.rationale is not None  # schema-validated
+        src = Source(
+            owner_id=user.id,
+            kind="manual",
+            title=f"Manual correction: {li.item_code}",
+            notes=body.rationale,
+        )
+        note, ref = body.rationale.strip(), "manual entry"
     session.add(src)
     session.flush()
-    old = {"value": li.value, "source_id": li.source_id, "source_ref": li.source_ref}
-    li.value, li.source_id, li.note = body.value, src.id, body.note
-    li.source_ref = "manual entry"
+    old = {
+        "value": li.value,
+        "basis": li.basis,
+        "source_id": li.source_id,
+        "source_ref": li.source_ref,
+    }
+    li.value, li.basis, li.source_id, li.note = body.value, body.basis, src.id, note
+    li.source_ref = ref
     li.original_value, li.original_text, li.original_scale = body.value, None, None
     audit(
         session,
@@ -163,10 +190,16 @@ def patch_line_item(
         "line_item",
         li.id,
         "update",
-        {"old": old, "new_value": body.value, "note": body.note},
+        {"old": old, "new_value": body.value, "basis": body.basis, "note": note},
     )
     session.commit()
-    return {"id": li.id, "item_code": li.item_code, "value": li.value, "source_id": src.id}
+    return {
+        "id": li.id,
+        "item_code": li.item_code,
+        "value": li.value,
+        "basis": li.basis,
+        "source_id": src.id,
+    }
 
 
 @router.put("/companies/{company_id}/share-instruments")

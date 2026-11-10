@@ -125,3 +125,24 @@ rely on.
 4. **No value drift.** For KA-DCF-02 and KA-DCF-03, `POST /calculate/dcf` returns JSON equal,
    with exact float equality, to `run_dcf` called directly. Saved runs re-execute byte for byte
    (`POST /runs/{id}/verify`).
+
+## 7. Intentional breaking changes (Phase 4)
+
+Each was approved before implementation (see `phase-4-plan.md` §10–§11). Clients written against
+the Phase 3 API must make these changes.
+
+| ID | Endpoint | Phase 3 behaviour | Phase 4 behaviour | Why |
+|---|---|---|---|---|
+| C6 | `PATCH /line-items/{id}` | Body `{value, note}`; the item's old basis was kept | Body `{value, basis, rationale?, source?}`. `basis` is `reported` or `assumed`. `reported` needs `source: {title, reference?, uri?}` (stored as a `filing` source). `assumed` needs a `rationale`. The old body is a `validation` error. | An analyst-entered number could still be labelled "reported" (R2, A4–A6). |
+| C9 | `POST /projects/{id}/scenarios`, `PUT /scenarios/{id}`, `POST …/clone` | Assumptions could omit `rationale`; settings had no `market_rationale` | Every `assumed` assumption needs a `rationale` (1–2,000 non-blank characters). A `share_price` without `market_source_id` needs `settings.market_rationale`. Missing → `validation` (`rationale_required`). | A5: an assumption must say why. |
+| C9 | `POST /companies/{id}/financials/import` | `basis=assumed` needed nothing else | `basis=assumed` needs a `rationale` form field, stored on the source and on each line item's `note`. Missing → `import` error. | A5. |
+| C10 | `POST /scenarios/{id}/runs` | No idempotency | **`Idempotency-Key` header required** (8–128 of `[A-Za-z0-9_-]`). Missing or malformed → 422 `validation`; nothing is created and the engine isn't called. Same key and request → 200 with the same run and `Idempotent-Replayed: true`. Same key, different request → 409 `IDEMPOTENCY_KEY_REUSED`. Lock timeout → 503 `DATABASE_BUSY` with `Retry-After: 1`; retry with the same key. | A7, A8: no duplicate frozen runs, including under concurrency. |
+| C12 | Assumption `basis` | Accepted `assumed`, `reported` or `derived` | Accepts only `assumed` or `reported`. `reported` needs a `source_id` the user owns, of kind `csv_import`, `filing`, `market_data` or `synthetic`; otherwise 422 (`basis_source_required` / `BASIS_SOURCE_KIND`) or 404 for another user's source. | A4, A6. |
+
+**Also enforced in the database (migration 0002):** triggers reject any `line_items`,
+`assumptions` or `scenarios` row that breaks A4–A6, including direct SQL. Existing rows are not
+rewritten; the migration's read-only pre-check lists any that violate the rules (LIM-28).
+
+**Non-breaking fix:** `created_at` on a run is now always rendered in UTC with an explicit offset
+(`…+00:00`). Previously a run read back from SQLite rendered without the offset, so the response
+to `POST …/runs` and a later `GET /runs/{id}` differed for the same run.

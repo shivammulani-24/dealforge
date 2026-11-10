@@ -83,7 +83,7 @@ def seed(session: Session) -> tuple[User, Company, Source]:
         is_financial_institution=False,
         is_synthetic=True,
     )
-    s = Source(owner_id=u.id, kind="manual", title="test")
+    s = Source(owner_id=u.id, kind="csv_import", title="test")  # A4: reported needs csv/filing
     session.add_all([c, s])
     session.flush()
     return u, c, s

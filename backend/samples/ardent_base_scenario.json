@@ -4,7 +4,8 @@
     "market_data_date": "2025-04-30",
     "share_price": 20.0,
     "debt_value_basis": "book",
-    "include_leases_in_debt": true
+    "include_leases_in_debt": true,
+    "market_rationale": "Synthetic share price of 20.00 on 2025-04-30 for the KA-DCF-03 demonstration; not a real market quote."
   },
   "assumptions": [
     {

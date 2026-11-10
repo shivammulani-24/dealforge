@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import uuid
 from collections.abc import Iterator
 from pathlib import Path
 from typing import Any
@@ -122,3 +123,8 @@ def full_setup(client: TestClient, h: dict[str, str]) -> dict[str, int]:
     )
     assert s.status_code == 201, s.text
     return {"company": c["id"], "project": p["id"], "scenario": s.json()["id"]}
+
+
+def idem(h: dict[str, str]) -> dict[str, str]:
+    """Headers for a freeze request: auth plus a fresh mandatory Idempotency-Key (A7, C10)."""
+    return {**h, "Idempotency-Key": f"test-{uuid.uuid4()}"}

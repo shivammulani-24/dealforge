@@ -92,11 +92,18 @@ def test_manual_correction_is_sourced_and_audited(client: TestClient, auth: dict
     r = client.patch(
         f"/api/v1/line-items/{cash['id']}",
         headers=auth,
-        json={"value": None, "note": "Cash figure disputed; marked missing"},
+        # C6: basis is explicit; an assumed correction carries its rationale
+        json={
+            "value": None,
+            "basis": "assumed",
+            "rationale": "Cash figure disputed; marked missing",
+        },
     )
     assert r.status_code == 200 and r.json()["value"] is None
     neg = client.patch(
-        f"/api/v1/line-items/{cash['id']}", headers=auth, json={"value": -1.0, "note": "typo"}
+        f"/api/v1/line-items/{cash['id']}",
+        headers=auth,
+        json={"value": -1.0, "basis": "assumed", "rationale": "typo"},
     )
     assert neg.status_code == 409
     after = client.get(f"/api/v1/companies/{c['id']}/financials", headers=auth).json()

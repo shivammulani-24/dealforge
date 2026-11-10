@@ -17,12 +17,14 @@ from app.db.models import ImmutableRunError
 from app.engine.errors import EngineError
 from app.engine.version import ENGINE_VERSION
 from app.services.errors import Conflict, ImportRejected, NotFound, ServiceError, Unauthorized
+from app.services.valuations import DatabaseBusy
 
 ERROR_TYPES: dict[type[ServiceError], str] = {
     NotFound: "not_found",
     Conflict: "conflict",
     ImportRejected: "import",
     Unauthorized: "authentication",
+    DatabaseBusy: "unavailable",
 }
 
 
@@ -65,7 +67,11 @@ def install(app: FastAPI) -> None:
     @app.exception_handler(ServiceError)
     async def _service(_: Request, exc: ServiceError) -> JSONResponse:
         etype = next((t for cls, t in ERROR_TYPES.items() if isinstance(exc, cls)), "validation")
-        headers = {"WWW-Authenticate": "Bearer"} if isinstance(exc, Unauthorized) else None
+        headers: dict[str, str] | None = None
+        if isinstance(exc, Unauthorized):
+            headers = {"WWW-Authenticate": "Bearer"}
+        elif isinstance(exc, DatabaseBusy):
+            headers = {"Retry-After": "1"}
         return JSONResponse(
             status_code=exc.status,
             headers=headers,

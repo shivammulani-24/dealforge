@@ -139,6 +139,21 @@ class ScenarioSettingsIn(StrictModel):
     debt_value_basis: Literal["market", "book"] | None
     include_leases_in_debt: bool | None
     market_source_id: int | None = None
+    # A5: required when share_price is given without a market source (the price is then assumed)
+    market_rationale: str | None = None
+
+    @model_validator(mode="after")
+    def _market_basis(self) -> ScenarioSettingsIn:
+        if (
+            self.share_price is not None
+            and self.market_source_id is None
+            and not rationale_ok(self.market_rationale)
+        ):
+            raise PydanticCustomError(
+                "rationale_required",
+                "A share price without a market source is assumed and needs a market_rationale.",
+            )
+        return self
 
 
 class ScenarioIn(StrictModel):
@@ -163,6 +178,31 @@ class RunIn(StrictModel):
     label: str | None = None
 
 
+class SourceRefIn(StrictModel):
+    """The document a reported correction comes from; stored as a ``filing`` source."""
+
+    title: str = Field(min_length=1, max_length=300)
+    reference: str | None = Field(default=None, max_length=300)  # e.g. "p. 42, note 12"
+    uri: str | None = Field(default=None, max_length=1000)
+
+
 class LineItemPatchIn(StrictModel):
+    """C6 (breaking change): the basis is explicit. ``reported`` needs the source document;
+    ``assumed`` needs a rationale. ``derived`` can't be entered (A6)."""
+
     value: Num | None  # null = mark as missing; never coerced to 0
-    note: str = Field(min_length=1, max_length=1000)
+    basis: Literal["reported", "assumed"]
+    rationale: str | None = None
+    source: SourceRefIn | None = None
+
+    @model_validator(mode="after")
+    def _basis_rules(self) -> LineItemPatchIn:
+        if self.basis == "reported" and self.source is None:
+            raise PydanticCustomError(
+                "basis_source_required", "A reported correction needs its source document."
+            )
+        if self.basis == "assumed" and not rationale_ok(self.rationale):
+            raise PydanticCustomError(
+                "rationale_required", "An assumed correction needs a rationale."
+            )
+        return self

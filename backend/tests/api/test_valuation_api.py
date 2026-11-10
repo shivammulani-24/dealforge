@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from conftest import KA_DCF03_ASSUMPTIONS, KA_DCF03_SETTINGS, full_setup
+from conftest import KA_DCF03_ASSUMPTIONS, KA_DCF03_SETTINGS, full_setup, idem
 from fastapi.testclient import TestClient
 from sqlalchemy import text
 from sqlalchemy.exc import DBAPIError
@@ -49,12 +49,15 @@ def test_frozen_run_is_retrievable_identical_and_verifiable(
 ) -> None:
     ids = full_setup(client, auth)
     created = client.post(
-        f"/api/v1/scenarios/{ids['scenario']}/runs", headers=auth, json={"label": "Board pack v1"}
+        f"/api/v1/scenarios/{ids['scenario']}/runs",
+        headers=idem(auth),
+        json={"label": "Board pack v1"},
     )
     assert created.status_code == 201
     run = created.json()
     fetched = client.get(f"/api/v1/runs/{run['id']}", headers=auth).json()
     assert fetched["result"] == run["result"] and fetched["inputs"] == run["inputs"]
+    assert fetched == run  # the whole payload, including created_at, renders identically
     assert fetched["input_hash"] == run["input_hash"] == run["result"]["input_hash"]
     v = client.post(f"/api/v1/runs/{run['id']}/verify", headers=auth).json()
     assert v["identical"] and v["inputs_round_trip_exact"] and v["input_hash_matches"]
@@ -68,7 +71,9 @@ def test_editing_scenario_or_statements_never_changes_a_saved_run(
     client: TestClient, auth: dict[str, str]
 ) -> None:
     ids = full_setup(client, auth)
-    run = client.post(f"/api/v1/scenarios/{ids['scenario']}/runs", headers=auth, json={}).json()
+    run = client.post(
+        f"/api/v1/scenarios/{ids['scenario']}/runs", headers=idem(auth), json={}
+    ).json()
     edited = [dict(a) for a in KA_DCF03_ASSUMPTIONS]
     next(a for a in edited if a["key"] == "terminal_growth")["value"] = 0.03
     assert (
@@ -81,13 +86,18 @@ def test_editing_scenario_or_statements_never_changes_a_saved_run(
     )
     fin = client.get(f"/api/v1/companies/{ids['company']}/financials", headers=auth).json()
     cash = next(li for li in fin["periods"][-1]["line_items"] if li["item_code"] == "cash")
-    client.patch(
-        f"/api/v1/line-items/{cash['id']}", headers=auth, json={"value": 999.0, "note": "test edit"}
+    patched = client.patch(
+        f"/api/v1/line-items/{cash['id']}",
+        headers=auth,
+        json={"value": 999.0, "basis": "assumed", "rationale": "test edit"},  # C6
     )
+    assert patched.status_code == 200, patched.text  # the statement really changed
     again = client.get(f"/api/v1/runs/{run['id']}", headers=auth).json()
     assert again["result"] == run["result"]
     assert client.post(f"/api/v1/runs/{run['id']}/verify", headers=auth).json()["identical"]
-    new = client.post(f"/api/v1/scenarios/{ids['scenario']}/runs", headers=auth, json={}).json()
+    new = client.post(
+        f"/api/v1/scenarios/{ids['scenario']}/runs", headers=idem(auth), json={}
+    ).json()
     assert new["input_hash"] != run["input_hash"]
     assert (
         new["result"]["per_share"]["value_per_share"]
@@ -97,7 +107,9 @@ def test_editing_scenario_or_statements_never_changes_a_saved_run(
 
 def test_runs_cannot_be_altered_even_with_raw_sql(client: TestClient, auth: dict[str, str]) -> None:
     ids = full_setup(client, auth)
-    run = client.post(f"/api/v1/scenarios/{ids['scenario']}/runs", headers=auth, json={}).json()
+    run = client.post(
+        f"/api/v1/scenarios/{ids['scenario']}/runs", headers=idem(auth), json={}
+    ).json()
     with client.app.state.session_factory() as s:  # type: ignore[attr-defined]
         for sql in (
             "UPDATE valuation_runs SET result_json='{}' WHERE id=:i",
@@ -123,7 +135,7 @@ def test_missing_inputs_are_calculation_errors_naming_the_field(
     assert {(e["code"], e["field"]) for e in r.json()["errors"]} >= {("MISSING_INPUT", "tax_rate")}
     no_date = {**KA_DCF03_SETTINGS, "market_data_date": None}
     client.put(url, headers=auth, json={"settings": no_date, "assumptions": KA_DCF03_ASSUMPTIONS})
-    r2 = client.post(f"{url}/runs", headers=auth, json={})
+    r2 = client.post(f"{url}/runs", headers=idem(auth), json={})
     assert r2.status_code == 422
     assert r2.json()["errors"][0]["field"] == "market_data_date"
 
@@ -136,9 +148,12 @@ def test_missing_statement_value_is_never_zero(client: TestClient, auth: dict[st
         for li in fin["periods"][-1]["line_items"]
         if li["item_code"] == "non_controlling_interest"
     )
-    client.patch(
-        f"/api/v1/line-items/{nci['id']}", headers=auth, json={"value": None, "note": "unknown"}
+    patched = client.patch(
+        f"/api/v1/line-items/{nci['id']}",
+        headers=auth,
+        json={"value": None, "basis": "assumed", "rationale": "unknown"},  # C6
     )
+    assert patched.status_code == 200, patched.text
     r = client.post(f"/api/v1/scenarios/{ids['scenario']}/preview", headers=auth)
     assert r.status_code == 422
     assert ("MISSING_INPUT", "non_controlling_interest") in {

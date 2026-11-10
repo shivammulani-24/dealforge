@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from datetime import UTC, datetime, timedelta
 
-from conftest import PASSWORD, full_setup, login
+from conftest import PASSWORD, full_setup, idem, login
 from fastapi.testclient import TestClient
 from sqlalchemy import select, text
 
@@ -76,7 +76,7 @@ def test_expired_token_is_rejected(client: TestClient) -> None:
 def test_users_cannot_see_each_others_data(client: TestClient) -> None:
     a = login(client, "a@example.com")
     ids = full_setup(client, a)
-    run = client.post(f"/api/v1/scenarios/{ids['scenario']}/runs", headers=a, json={}).json()
+    run = client.post(f"/api/v1/scenarios/{ids['scenario']}/runs", headers=idem(a), json={}).json()
     b = login(client, "b@example.com")
     for url in (
         f"/api/v1/companies/{ids['company']}",
@@ -88,7 +88,9 @@ def test_users_cannot_see_each_others_data(client: TestClient) -> None:
         r = client.get(url, headers=b)
         assert r.status_code == 404, url  # 404, not 403: existence is not leaked
     assert (
-        client.post(f"/api/v1/scenarios/{ids['scenario']}/runs", headers=b, json={}).status_code
+        client.post(
+            f"/api/v1/scenarios/{ids['scenario']}/runs", headers=idem(b), json={}
+        ).status_code
         == 404
     )
     assert client.post(f"/api/v1/runs/{run['id']}/verify", headers=b).status_code == 404

@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import json
 import sys
+import uuid
 from pathlib import Path
 from typing import Any
 
@@ -154,7 +155,15 @@ def main(base: str) -> None:
     print("warnings:", [w["code"] for w in pv["warnings"]])
 
     step(5, "Save the valuation run (frozen)")
-    run = check(api.post(f"/scenarios/{scen['id']}/runs", json={"label": "Phase 3 demo run"}), 201)
+    key = f"demo-{uuid.uuid4()}"  # mandatory Idempotency-Key (A7); reuse it to retry safely
+    run = check(
+        api.post(
+            f"/scenarios/{scen['id']}/runs",
+            json={"label": "Phase 3 demo run"},
+            headers={"Idempotency-Key": key},
+        ),
+        201,
+    )
     print(f"run {run['id']}  engine {run['engine_version']}  {run['input_hash']}")
 
     step(6, "Retrieve the saved run")

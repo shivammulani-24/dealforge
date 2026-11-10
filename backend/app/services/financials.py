@@ -28,6 +28,7 @@ def commit_import(
     *,
     basis: str,
     replace: bool,
+    rationale: str | None = None,
 ) -> list[FinancialPeriod]:
     if not preview.ok:
         raise ImportRejected(
@@ -36,6 +37,11 @@ def commit_import(
         )
     if basis not in ("reported", "assumed"):
         raise ImportRejected("basis must be 'reported' or 'assumed'.")
+    note: str | None = None
+    if basis == "assumed":  # A5
+        if rationale is None or not 0 < len(rationale.strip()) <= 2000:
+            raise ImportRejected("Importing values as 'assumed' needs a rationale (A5).")
+        note = rationale.strip()
     existing = {p.fiscal_year: p for p in company.periods}
     clashes = sorted(y for y in (p.fiscal_year for p in preview.periods) if y in existing)
     if clashes and not replace:
@@ -51,7 +57,7 @@ def commit_import(
         file_name=preview.file_name,
         file_sha256=preview.file_sha256,
         notes=f"currency {preview.currency}; file scale {preview.file_scale}; "
-        f"stored in {preview.target_scale}",
+        f"stored in {preview.target_scale}" + (f"; rationale: {note}" if note else ""),
     )
     session.add(source)
     session.flush()
@@ -93,6 +99,7 @@ def commit_import(
                     original_value=cell.original_value,
                     original_scale=preview.file_scale,
                     original_text=cell.original_text,
+                    note=note,  # the import rationale when basis is "assumed" (A5)
                 )
             )
         company.periods.append(period)

@@ -8,12 +8,14 @@ input carries a provenance entry. Nothing is defaulted: a missing value reaches 
 
 from __future__ import annotations
 
+import hashlib
 import json
 from dataclasses import asdict
 from typing import Any
 
 from sqlalchemy import select
-from sqlalchemy.orm import Session
+from sqlalchemy.exc import IntegrityError, OperationalError
+from sqlalchemy.orm import Session, sessionmaker
 
 from app.db.models import (
     Assumption,
@@ -27,6 +29,7 @@ from app.db.models import (
     User,
     ValuationProject,
     ValuationRun,
+    iso_utc,
 )
 from app.engine.bridge import BridgeInputs
 from app.engine.consistency import driver_history_warnings
@@ -173,7 +176,7 @@ def apply_scenario_payload(
         elif r.get("source_id") is not None:
             get_source(session, user, r["source_id"])
     if settings.get("market_source_id") is not None:
-        get_source(session, user, settings["market_source_id"])
+        check_reported_source(session, user, settings["market_source_id"], "market_source_id")
     for k, v in settings.items():
         setattr(scenario, k, v)
     scenario.assumptions.clear()
@@ -201,6 +204,7 @@ def snapshot(scenario: Scenario) -> dict[str, Any]:
             "debt_value_basis": scenario.debt_value_basis,
             "include_leases_in_debt": scenario.include_leases_in_debt,
             "market_source_id": scenario.market_source_id,
+            "market_rationale": scenario.market_rationale,
         },
         "assumptions": [
             {
@@ -374,11 +378,14 @@ def build_dcf_inputs(
             else DebtValueBasis(scenario.debt_value_basis),
             **vals,
         )
+    # C5: the price is "reported" only when linked to a market source; otherwise "assumed",
+    # with the rationale the analyst gave (A4/A5).
     prov["current_share_price"] = {
         "status": "ok" if scenario.share_price is not None else "missing",
-        "basis": "reported",
+        "basis": "reported" if scenario.market_source_id is not None else "assumed",
         "market_data_date": scenario.market_data_date.isoformat(),
         "source_id": scenario.market_source_id,
+        "rationale": scenario.market_rationale,
     }
     prov["dates"] = {
         "statement_date": lfy.period_end.isoformat(),
@@ -434,33 +441,117 @@ def preview(session: Session, scenario: Scenario) -> dict[str, Any]:
     }
 
 
-def freeze_run(session: Session, user: User, scenario: Scenario, label: str | None) -> ValuationRun:
+class IdempotencyKeyReused(ServiceError):
+    status = 409
+    code = "IDEMPOTENCY_KEY_REUSED"
+
+
+class DatabaseBusy(ServiceError):
+    status = 503
+    code = "DATABASE_BUSY"
+
+
+def request_fingerprint(scenario_id: int, label: str | None) -> str:
+    """Identifies a freeze request: the same key must always mean the same request."""
+    body = {"scenario_id": scenario_id, "label": label}
+    return "sha256:" + hashlib.sha256(canonical_json(body).encode("utf-8")).hexdigest()
+
+
+def _existing_run(session: Session, user_id: int, key: str) -> ValuationRun | None:
+    return session.scalar(
+        select(ValuationRun).where(
+            ValuationRun.created_by == user_id, ValuationRun.idempotency_key == key
+        )
+    )
+
+
+def _replay(run: ValuationRun, fingerprint_: str, key: str) -> ValuationRun:
+    if run.request_fingerprint != fingerprint_:
+        raise IdempotencyKeyReused(
+            f"Idempotency-Key '{key}' was already used for a different freeze request "
+            f"(run {run.id}). Use a new key for a new request.",
+            detail={"run_id": run.id},
+        )
+    return run
+
+
+def _before_write_phase() -> None:
+    """Test seam between the read phase and BEGIN IMMEDIATE (plan §4.14); no-op in production."""
+
+
+def freeze_run(
+    session: Session,
+    write_factory: sessionmaker,  # type: ignore[type-arg]
+    user: User,
+    scenario: Scenario,
+    label: str | None,
+    key: str,
+) -> tuple[ValuationRun, bool]:
+    """Freeze a run exactly once per (user, Idempotency-Key). Returns (run, replayed).
+
+    Plan §4.14: (2) read phase with all computation outside the write lock; (3) BEGIN IMMEDIATE,
+    re-check the key inside the transaction, insert run + audit event, commit; (4) the unique
+    index is the backstop; (5) lock timeout → 503 DATABASE_BUSY, safe to retry with the same key.
+    """
+    user_id, scenario_id, project_id = user.id, scenario.id, scenario.project_id
+    fp = request_fingerprint(scenario_id, label)
+
+    # Step 2: read phase (deferred transaction, WAL snapshot)
+    existing = _existing_run(session, user_id, key)
+    if existing is not None:
+        return _replay(existing, fp, key), True
     inputs, prov, extra = build_dcf_inputs(session, scenario)
     result = run_dcf(inputs)
-    run = ValuationRun(
-        scenario_id=scenario.id,
-        project_id=scenario.project_id,
-        created_by=user.id,
-        label=label,
-        engine_version=result.engine_version,
-        input_hash=result.input_hash,
-        inputs_json=canonical_json(inputs),
-        result_json=canonical_json(result),
-        provenance={"inputs": prov, "scenario": snapshot(scenario)},
-        warnings=issue_dicts(result.issues + extra),
-    )
-    session.add(run)
-    session.flush()
-    audit(
-        session,
-        user,
-        "valuation_run",
-        run.id,
-        "create",
-        {"scenario_id": scenario.id, "input_hash": run.input_hash},
-    )
-    session.commit()
-    return run
+    fields_ = {
+        "scenario_id": scenario_id,
+        "project_id": project_id,
+        "created_by": user_id,
+        "label": label,
+        "engine_version": result.engine_version,
+        "input_hash": result.input_hash,
+        "inputs_json": canonical_json(inputs),
+        "result_json": canonical_json(result),
+        "provenance": {"inputs": prov, "scenario": snapshot(scenario)},
+        "warnings": issue_dicts(result.issues + extra),
+        "idempotency_key": key,
+        "request_fingerprint": fp,
+    }
+    session.rollback()  # end the read transaction; nothing was written
+    _before_write_phase()
+
+    # Step 3: write phase under SQLite's RESERVED lock
+    try:
+        with write_factory() as ws, ws.begin():
+            again = _existing_run(ws, user_id, key)
+            if again is not None:
+                return _replay(again, fp, key), True
+            run = ValuationRun(**fields_)
+            ws.add(run)
+            ws.flush()
+            ws.add(
+                AuditEvent(
+                    user_id=user_id,
+                    entity="valuation_run",
+                    entity_id=run.id,
+                    action="create",
+                    detail={"scenario_id": scenario_id, "input_hash": run.input_hash},
+                )
+            )
+        return run, False
+    except IntegrityError:
+        # Step 4: backstop — another writer committed the same key; return its run.
+        with write_factory() as ws:
+            winner = _existing_run(ws, user_id, key)
+            if winner is None:  # pragma: no cover - the unique index guarantees a winner
+                raise
+            return _replay(winner, fp, key), True
+    except OperationalError as exc:
+        if "locked" in str(exc).lower() or "busy" in str(exc).lower():
+            raise DatabaseBusy(
+                "The database is busy; nothing was saved. Retry with the same Idempotency-Key.",
+                detail={"retry_after_seconds": 1},
+            ) from exc
+        raise  # pragma: no cover
 
 
 def run_payload(run: ValuationRun) -> dict[str, Any]:
@@ -471,7 +562,7 @@ def run_payload(run: ValuationRun) -> dict[str, Any]:
         "label": run.label,
         "engine_version": run.engine_version,
         "input_hash": run.input_hash,
-        "created_at": run.created_at.isoformat(),
+        "created_at": iso_utc(run.created_at),
         "inputs": json.loads(run.inputs_json),
         "result": json.loads(run.result_json),
         "warnings": run.warnings,
