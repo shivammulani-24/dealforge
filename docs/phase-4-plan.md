@@ -267,22 +267,59 @@ All endpoints are owner-scoped: another user's resource returns 404, and lists f
 
 ### 4.3 B3: `POST /api/v1/runs/{run_id}/sensitivity`
 
+The examples below are real responses from the F0c server (a fresh database loaded by
+`scripts/demo_workflow.py`, i.e. the KA-DCF-03 run), shortened only where marked `…`.
+
 ```jsonc
-// request (axes are built by the server around the run's own base values, D4-11)
-{ "row": { "variable": "wacc", "step": 0.005, "steps_each_side": 3 },
-  "col": { "variable": "terminal_growth", "step": 0.005, "steps_each_side": 3 },
+// request (axes are built by the server around the run's own base values, D4-11).
+// The wide g step is chosen to show invalid cells.
+{ "row": { "variable": "wacc", "step": 0.005, "steps_each_side": 1 },
+  "col": { "variable": "terminal_growth", "step": 0.05, "steps_each_side": 2 },
   "output": "value_per_share" }
-// response
-{ "run_id": 7, "input_hash": "sha256:…", "engine_version": "0.1.0", "basis": "derived",
+// response (positive base: change_pct is computed)
+{ "run_id": 1,
+  "input_hash": "sha256:37c66a5382d863399822cc79268966c803179e0fae0d36679fc0c867efcf8114",
+  "engine_version": "0.1.0", "basis": "derived",
+  "context": { "company": { "id": 1, "name": "Ardent Precision Components (SYNTHETIC)",
+                            "currency": "INR", "scale": "crores", "is_synthetic": true },
+               "project": { "id": 1, "name": "Ardent valuation" },
+               "scenario": { "id": 1, "name": "Base" } },
   "row_variable": "wacc", "col_variable": "terminal_growth", "output": "value_per_share",
-  "row_values": […], "col_values": […], "base_row": 3, "base_col": 3,
-  "base_value": 31.2150…, "base_matches_run": true,
-  "cells": [[ { "value": 34.1…, "status": "ok", "codes": [],
-                "change_abs": 2.90…,
-                "change_pct": { "value": 0.0931…, "status": "ok", "reason": null } },
-              { "value": null, "status": "invalid", "codes": ["TERMINAL_GROWTH_GE_WACC"],
-                "change_abs": null,
-                "change_pct": { "value": null, "status": "missing", "reason": "cell invalid" } } ]] }
+  "row_values": [0.0909980079681275, 0.0959980079681275, 0.10099800796812751],
+  "col_values": [-0.07500000000000001, -0.025, 0.025, 0.07500000000000001, 0.125],
+  "base_row": 1, "base_col": 2,
+  "base_value": 31.215006617818556, "base_matches_run": true,
+  "cells": [
+    [ …,
+      // row 0, col 2: WACC 9.0998%, g 2.5%
+      { "value": 33.866388741853164, "status": "ok", "codes": [],
+        "change_abs": 2.6513821240346083,
+        "change_pct": { "value": 0.08493934204457647, "status": "ok", "reason": null } },
+      …,
+      // row 0, col 4: g 12.5% ≥ WACC, so the cell is invalid
+      { "value": null, "status": "invalid", "codes": ["TERMINAL_GROWTH_GE_WACC"],
+        "change_abs": null,
+        "change_pct": { "value": null, "status": "missing", "reason": "cell invalid" } } ],
+    [ …,
+      // the base cell (row 1, col 2)
+      { "value": 31.215006617818556, "status": "ok", "codes": [], "change_abs": 0.0,
+        "change_pct": { "value": 0.0, "status": "ok", "reason": null } },
+      … ],
+    … ] }
+```
+
+```jsonc
+// Negative base: the same company with other_debt_like_claims set to 5,000 (basis "assumed",
+// with a rationale), so equity is negative (EQUITY_VALUE_NON_POSITIVE). Request: WACC step
+// 0.005 × 1, g step 0.005 × 1. change_abs is still given; change_pct is NM in every cell.
+// base cell
+{ "value": -17.190145117472877, "status": "ok", "codes": [], "change_abs": 0.0,
+  "change_pct": { "value": null, "status": "not_meaningful",
+                  "reason": "base value is zero or negative" } }
+// row 0, col 2 (WACC 9.0998%, g 3.0%)
+{ "value": -11.777498312518746, "status": "ok", "codes": [], "change_abs": 5.4126468049541305,
+  "change_pct": { "value": null, "status": "not_meaningful",
+                  "reason": "base value is zero or negative" } }
 ```
 
 **Integrity sequence (R1):**
@@ -296,8 +333,8 @@ All endpoints are owner-scoped: another user's resource returns 404, and lists f
    - computes each cell's changes (A9):
      - `change_abs = v − base`, in the output's units (currency, or currency per share);
      - `change_pct = (v − base) / base` **only when `base > 0`**;
-     - when `base ≤ 0`, `change_pct` is NM with reason *"base value is zero or negative"* and `change_abs` is still given;
-     - invalid cells have both null.
+     - when `base ≤ 0`, `change_pct` is NM (`status: "not_meaningful"`, `value: null`) with reason *"base value is zero or negative"*, and `change_abs` is still given;
+     - an invalid cell has `change_abs: null`, and its `change_pct` is `{value: null, status: "missing", reason: "cell invalid"}`.
    The service layer does no sensitivity arithmetic; it only loads the run, checks it and calls the engine.
 6. **Assert the base cell `==` the run's stored output.** If it doesn't match, return 500 `BASE_MISMATCH`; this should be impossible after steps 2 and 4.
 

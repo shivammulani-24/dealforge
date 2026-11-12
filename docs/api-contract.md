@@ -153,7 +153,7 @@ to `POST …/runs` and a later `GET /runs/{id}` differed for the same run.
 |---|---|
 | `GET /dashboard` | Counts, onboarding progress, recent runs, recently active companies, activity summaries (no raw audit detail) |
 | `GET /runs?page&page_size&company_id&project_id&scenario_id` | All of the user's frozen runs, read verbatim from stored results, with `engine_compatible` |
-| `POST /runs/{id}/sensitivity` | Grid from the run's frozen inputs only; 409 `ENGINE_VERSION_MISMATCH` or `RUN_INPUTS_CORRUPT`; `change_abs` always, `change_pct` NM when the base ≤ 0 |
+| `POST /runs/{id}/sensitivity` | Grid from the run's frozen inputs only; 409 `ENGINE_VERSION_MISMATCH` or `RUN_INPUTS_CORRUPT`; `change_abs` on every valid cell; `change_pct` only when the base > 0, otherwise NM ("base value is zero or negative"); invalid cells: `change_abs` null, `change_pct` missing ("cell invalid") |
 | `POST /scenarios/{id}/preview` with a body | Draft preview: validated like a save; no database writes, no audit event (`"draft": true`) |
 | `GET /sources/{id}`, `POST /sources` | Source details; analysts create `filing` or `market_data` sources to back reported values |
 | `GET /samples`, `POST /samples/{id}/load` | The synthetic sample company, loaded atomically; 409 `SAMPLE_ALREADY_LOADED` with existing IDs |
