@@ -187,9 +187,10 @@ test.describe("design system and layout", () => {
     else expect(side!.x).toBeGreaterThan(chart!.x + chart!.width);
 
     // Wide table: scrolls inside its container; first column and header are sticky.
+    // Whether the table happens to overflow at a given viewport depends on font metrics, so the
+    // scroll path is exercised deterministically by narrowing the container to 640 px.
     const region = page.getByRole("region", { name: "Operating summary, historical and forecast" });
-    const dims = await region.evaluate((el) => ({ sw: el.scrollWidth, cw: el.clientWidth }));
-    if (compact) expect(dims.sw).toBeGreaterThan(dims.cw);
+    expect(await region.evaluate((el) => getComputedStyle(el).overflowX)).toBe("auto");
     const firstCell = region.locator("tbody tr").first().locator("td").first();
     expect(await firstCell.evaluate((el) => getComputedStyle(el).position)).toBe("sticky");
     expect(
@@ -198,17 +199,26 @@ test.describe("design system and layout", () => {
         .first()
         .evaluate((el) => getComputedStyle(el).position),
     ).toBe("sticky");
-    if (compact) {
-      const before = await firstCell.boundingBox();
-      await region.evaluate((el) => {
-        el.scrollLeft = el.scrollWidth;
-      });
-      const after = await firstCell.boundingBox();
-      expect(after?.x).toBe(before?.x); // pinned while the numbers scroll
-      await region.evaluate((el) => {
-        el.scrollLeft = 0;
-      });
-    }
+    await region.evaluate((el) => {
+      el.style.maxWidth = "640px";
+    });
+    const dims = await region.evaluate((el) => ({ sw: el.scrollWidth, cw: el.clientWidth }));
+    expect(dims.cw).toBe(640);
+    expect(dims.sw).toBeGreaterThan(dims.cw); // the table scrolls inside its container...
+    expect(
+      await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth),
+    ).toBeLessThanOrEqual(0); // ...and the page itself still does not
+    const before = await firstCell.boundingBox();
+    await region.evaluate((el) => {
+      el.scrollLeft = el.scrollWidth;
+    });
+    expect(await region.evaluate((el) => el.scrollLeft)).toBeGreaterThan(0);
+    const after = await firstCell.boundingBox();
+    expect(after?.x).toBe(before?.x); // label column pinned while the numbers scroll
+    await region.evaluate((el) => {
+      el.scrollLeft = 0;
+      el.style.maxWidth = "";
+    });
 
     // Review screenshots (synthetic data, labelled on the page).
     mkdirSync(SCREENSHOTS, { recursive: true });
