@@ -1,0 +1,343 @@
+{
+  "$recorded": {
+    "operation": {
+      "method": "post",
+      "path": "/api/v1/runs/{run_id}/sensitivity",
+      "status": 200
+    },
+    "engine_version": "0.1.0",
+    "note": "WACC ±2 × 0.5pp, g ±2 × 0.5pp, value per share",
+    "source": "scripts/record-fixtures.mjs against a live backend; synthetic sample data only"
+  },
+  "body": {
+    "run_id": 1,
+    "input_hash": "sha256:37c66a5382d863399822cc79268966c803179e0fae0d36679fc0c867efcf8114",
+    "engine_version": "0.1.0",
+    "basis": "derived",
+    "context": {
+      "company": {
+        "id": 1,
+        "name": "Ardent Precision Components (SYNTHETIC)",
+        "currency": "INR",
+        "scale": "crores",
+        "is_synthetic": true
+      },
+      "project": {
+        "id": 1,
+        "name": "Ardent valuation (sample)"
+      },
+      "scenario": {
+        "id": 1,
+        "name": "Base"
+      }
+    },
+    "row_variable": "wacc",
+    "col_variable": "terminal_growth",
+    "output": "value_per_share",
+    "row_values": [
+      0.08599800796812751,
+      0.0909980079681275,
+      0.0959980079681275,
+      0.10099800796812751,
+      0.1059980079681275
+    ],
+    "col_values": [
+      0.015000000000000001,
+      0.02,
+      0.025,
+      0.030000000000000002,
+      0.035
+    ],
+    "base_row": 2,
+    "base_col": 2,
+    "base_value": 31.215006617818556,
+    "base_matches_run": true,
+    "cells": [
+      [
+        {
+          "value": 32.378032046571896,
+          "status": "ok",
+          "codes": [],
+          "change_abs": 1.1630254287533397,
+          "change_pct": {
+            "value": 0.03725853538949585,
+            "status": "ok",
+            "reason": null
+          }
+        },
+        {
+          "value": 34.49289416474002,
+          "status": "ok",
+          "codes": [],
+          "change_abs": 3.277887546921466,
+          "change_pct": {
+            "value": 0.10500999045280804,
+            "status": "ok",
+            "reason": null
+          }
+        },
+        {
+          "value": 36.95446631305751,
+          "status": "ok",
+          "codes": [],
+          "change_abs": 5.739459695238953,
+          "change_pct": {
+            "value": 0.18386860414640052,
+            "status": "ok",
+            "reason": null
+          }
+        },
+        {
+          "value": 39.85562055324487,
+          "status": "ok",
+          "codes": [],
+          "change_abs": 8.640613935426313,
+          "change_pct": {
+            "value": 0.27680961408138754,
+            "status": "ok",
+            "reason": null
+          }
+        },
+        {
+          "value": 43.325650786000516,
+          "status": "ok",
+          "codes": [],
+          "change_abs": 12.11064416818196,
+          "change_pct": {
+            "value": 0.38797506329115444,
+            "status": "ok",
+            "reason": null
+          }
+        }
+      ],
+      [
+        {
+          "value": 29.98688395025333,
+          "status": "ok",
+          "codes": [],
+          "change_abs": -1.228122667565227,
+          "change_pct": {
+            "value": -0.03934398229036973,
+            "status": "ok",
+            "reason": null
+          }
+        },
+        {
+          "value": 31.790030231930256,
+          "status": "ok",
+          "codes": [],
+          "change_abs": 0.5750236141117,
+          "change_pct": {
+            "value": 0.01842138370021865,
+            "status": "ok",
+            "reason": null
+          }
+        },
+        {
+          "value": 33.866388741853164,
+          "status": "ok",
+          "codes": [],
+          "change_abs": 2.6513821240346083,
+          "change_pct": {
+            "value": 0.08493934204457647,
+            "status": "ok",
+            "reason": null
+          }
+        },
+        {
+          "value": 36.28314500886478,
+          "status": "ok",
+          "codes": [],
+          "change_abs": 5.068138391046222,
+          "change_pct": {
+            "value": 0.16236223983861536,
+            "status": "ok",
+            "reason": null
+          }
+        },
+        {
+          "value": 39.13148024711178,
+          "status": "ok",
+          "codes": [],
+          "change_abs": 7.916473629293225,
+          "change_pct": {
+            "value": 0.25361114691464587,
+            "status": "ok",
+            "reason": null
+          }
+        }
+      ],
+      [
+        {
+          "value": 27.892654964606454,
+          "status": "ok",
+          "codes": [],
+          "change_abs": -3.3223516532121025,
+          "change_pct": {
+            "value": -0.10643443693251035,
+            "status": "ok",
+            "reason": null
+          }
+        },
+        {
+          "value": 29.444540043269303,
+          "status": "ok",
+          "codes": [],
+          "change_abs": -1.7704665745492534,
+          "change_pct": {
+            "value": -0.056718443030494586,
+            "status": "ok",
+            "reason": null
+          }
+        },
+        {
+          "value": 31.215006617818556,
+          "status": "ok",
+          "codes": [],
+          "change_abs": 0,
+          "change_pct": {
+            "value": 0,
+            "status": "ok",
+            "reason": null
+          }
+        },
+        {
+          "value": 33.2537338003856,
+          "status": "ok",
+          "codes": [],
+          "change_abs": 2.0387271825670403,
+          "change_pct": {
+            "value": 0.06531240590553863,
+            "status": "ok",
+            "reason": null
+          }
+        },
+        {
+          "value": 35.62668946851765,
+          "status": "ok",
+          "codes": [],
+          "change_abs": 4.411682850699091,
+          "change_pct": {
+            "value": 0.1413321132592923,
+            "status": "ok",
+            "reason": null
+          }
+        }
+      ],
+      [
+        {
+          "value": 26.04351892906638,
+          "status": "ok",
+          "codes": [],
+          "change_abs": -5.171487688752176,
+          "change_pct": {
+            "value": -0.1656731248552778,
+            "status": "ok",
+            "reason": null
+          }
+        },
+        {
+          "value": 27.39020479227877,
+          "status": "ok",
+          "codes": [],
+          "change_abs": -3.8248018255397866,
+          "change_pct": {
+            "value": -0.12253086703997249,
+            "status": "ok",
+            "reason": null
+          }
+        },
+        {
+          "value": 28.91409080839216,
+          "status": "ok",
+          "codes": [],
+          "change_abs": -2.300915809426396,
+          "change_pct": {
+            "value": -0.07371184756094068,
+            "status": "ok",
+            "reason": null
+          }
+        },
+        {
+          "value": 30.65261467980953,
+          "status": "ok",
+          "codes": [],
+          "change_abs": -0.562391938009025,
+          "change_pct": {
+            "value": -0.018016716923839864,
+            "status": "ok",
+            "reason": null
+          }
+        },
+        {
+          "value": 32.65455920965905,
+          "status": "ok",
+          "codes": [],
+          "change_abs": 1.4395525918404921,
+          "change_pct": {
+            "value": 0.04611732457614627,
+            "status": "ok",
+            "reason": null
+          }
+        }
+      ],
+      [
+        {
+          "value": 24.399041269675354,
+          "status": "ok",
+          "codes": [],
+          "change_abs": -6.815965348143202,
+          "change_pct": {
+            "value": -0.21835540295072126,
+            "status": "ok",
+            "reason": null
+          }
+        },
+        {
+          "value": 25.57620672183143,
+          "status": "ok",
+          "codes": [],
+          "change_abs": -5.638799895987127,
+          "change_pct": {
+            "value": -0.1806438795617078,
+            "status": "ok",
+            "reason": null
+          }
+        },
+        {
+          "value": 26.898704816318556,
+          "status": "ok",
+          "codes": [],
+          "change_abs": -4.3163018015,
+          "change_pct": {
+            "value": -0.13827649804296732,
+            "status": "ok",
+            "reason": null
+          }
+        },
+        {
+          "value": 28.39522037913747,
+          "status": "ok",
+          "codes": [],
+          "change_abs": -2.819786238681086,
+          "change_pct": {
+            "value": -0.09033431494041264,
+            "status": "ok",
+            "reason": null
+          }
+        },
+        {
+          "value": 30.102518695676835,
+          "status": "ok",
+          "codes": [],
+          "change_abs": -1.112487922141721,
+          "change_pct": {
+            "value": -0.03563952222603971,
+            "status": "ok",
+            "reason": null
+          }
+        }
+      ]
+    ]
+  }
+}

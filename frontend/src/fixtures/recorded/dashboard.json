@@ -1,0 +1,115 @@
+{
+  "$recorded": {
+    "operation": {
+      "method": "get",
+      "path": "/api/v1/dashboard",
+      "status": 200
+    },
+    "engine_version": "0.1.0",
+    "note": "dashboard after loading the sample",
+    "source": "scripts/record-fixtures.mjs against a live backend; synthetic sample data only"
+  },
+  "body": {
+    "counts": {
+      "companies": 1,
+      "projects": 1,
+      "scenarios": 1,
+      "runs": 1
+    },
+    "onboarding": {
+      "complete": true,
+      "steps": [
+        {
+          "key": "company",
+          "label": "Create or load a company",
+          "done": true
+        },
+        {
+          "key": "statements",
+          "label": "Import financial statements",
+          "done": true
+        },
+        {
+          "key": "scenario",
+          "label": "Create a valuation scenario",
+          "done": true
+        },
+        {
+          "key": "run",
+          "label": "Freeze a valuation run",
+          "done": true
+        }
+      ],
+      "sample_available": true,
+      "sample_loaded": true
+    },
+    "recent_runs": [
+      {
+        "id": 1,
+        "label": "Fixture run",
+        "created_at": "2026-11-14T13:34:29.722630+00:00",
+        "company": {
+          "id": 1,
+          "name": "Ardent Precision Components (SYNTHETIC)",
+          "currency": "INR",
+          "scale": "crores",
+          "is_synthetic": true
+        },
+        "scenario": {
+          "id": 1,
+          "name": "Base"
+        },
+        "value_per_share": 31.215006617818556,
+        "engine_version": "0.1.0",
+        "engine_compatible": true
+      }
+    ],
+    "recent_companies": [
+      {
+        "id": 1,
+        "name": "Ardent Precision Components (SYNTHETIC)",
+        "is_synthetic": true,
+        "last_activity_at": "2026-11-14T13:34:29.723247+00:00",
+        "fiscal_years": [
+          2023,
+          2024,
+          2025
+        ]
+      }
+    ],
+    "recent_activity": [
+      {
+        "at": "2026-11-14T13:34:29.723247+00:00",
+        "entity": "valuation_run",
+        "entity_id": 1,
+        "action": "create",
+        "company_id": 1,
+        "summary": "Froze run 1 for scenario 'Base' (sha256:37c66a53…)"
+      },
+      {
+        "at": "2026-11-14T13:34:29.681077+00:00",
+        "entity": "company",
+        "entity_id": 1,
+        "action": "sample_load",
+        "company_id": 1,
+        "summary": "Loaded the synthetic sample company"
+      },
+      {
+        "at": "2026-11-14T13:34:29.674942+00:00",
+        "entity": "company",
+        "entity_id": 1,
+        "action": "share_instruments",
+        "company_id": 1,
+        "summary": "Updated share instruments"
+      },
+      {
+        "at": "2026-11-14T13:34:29.672953+00:00",
+        "entity": "company",
+        "entity_id": 1,
+        "action": "import",
+        "company_id": 1,
+        "summary": "Imported financial statements (FY2023–FY2025)"
+      }
+    ]
+  }
+}

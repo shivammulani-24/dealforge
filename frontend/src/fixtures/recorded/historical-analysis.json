@@ -1,0 +1,704 @@
+{
+  "$recorded": {
+    "operation": {
+      "method": "get",
+      "path": "/api/v1/companies/{company_id}/historical-analysis",
+      "status": 200
+    },
+    "engine_version": "0.1.0",
+    "note": "sample ratios, including liquidity",
+    "source": "scripts/record-fixtures.mjs against a live backend; synthetic sample data only"
+  },
+  "body": {
+    "periods": [
+      {
+        "fiscal_year": 2023,
+        "metrics": {
+          "revenue_growth": {
+            "value": null,
+            "status": "not_meaningful",
+            "reason": "no immediately preceding fiscal year",
+            "basis": "derived"
+          },
+          "gross_profit": {
+            "value": 640,
+            "status": "ok",
+            "reason": null,
+            "basis": "derived"
+          },
+          "gross_margin": {
+            "value": 0.4,
+            "status": "ok",
+            "reason": null,
+            "basis": "derived"
+          },
+          "ebitda": {
+            "value": 304,
+            "status": "ok",
+            "reason": null,
+            "basis": "derived"
+          },
+          "ebitda_margin": {
+            "value": 0.19,
+            "status": "ok",
+            "reason": null,
+            "basis": "derived"
+          },
+          "ebit_margin": {
+            "value": 0.15,
+            "status": "ok",
+            "reason": null,
+            "basis": "derived"
+          },
+          "net_margin": {
+            "value": 0.0984375,
+            "status": "ok",
+            "reason": null,
+            "basis": "derived"
+          },
+          "effective_tax_rate": {
+            "value": 0.25,
+            "status": "ok",
+            "reason": null,
+            "basis": "derived"
+          },
+          "simple_fcf": {
+            "value": 150,
+            "status": "ok",
+            "reason": null,
+            "basis": "derived"
+          },
+          "fcf_conversion": {
+            "value": 0.9523809523809523,
+            "status": "ok",
+            "reason": null,
+            "basis": "derived"
+          },
+          "capex_pct_revenue": {
+            "value": 0.05,
+            "status": "ok",
+            "reason": null,
+            "basis": "derived"
+          },
+          "da_pct_revenue": {
+            "value": 0.04,
+            "status": "ok",
+            "reason": null,
+            "basis": "derived"
+          },
+          "capex_to_da": {
+            "value": 1.25,
+            "status": "ok",
+            "reason": null,
+            "basis": "derived"
+          },
+          "nwc": {
+            "value": 240,
+            "status": "ok",
+            "reason": null,
+            "basis": "derived"
+          },
+          "nwc_pct_revenue": {
+            "value": 0.15,
+            "status": "ok",
+            "reason": null,
+            "basis": "derived"
+          },
+          "change_in_nwc": {
+            "value": null,
+            "status": "not_meaningful",
+            "reason": "no immediately preceding fiscal year",
+            "basis": "derived"
+          },
+          "net_debt": {
+            "value": 260,
+            "status": "ok",
+            "reason": null,
+            "basis": "derived"
+          },
+          "net_debt_to_ebitda": {
+            "value": 0.8552631578947368,
+            "status": "ok",
+            "reason": null,
+            "basis": "derived"
+          },
+          "interest_coverage": {
+            "value": 8,
+            "status": "ok",
+            "reason": null,
+            "basis": "derived"
+          },
+          "current_ratio": {
+            "value": 1.8461538461538463,
+            "status": "ok",
+            "reason": null,
+            "basis": "derived"
+          },
+          "quick_ratio": {
+            "value": 1.2307692307692308,
+            "status": "ok",
+            "reason": null,
+            "basis": "derived"
+          },
+          "cash_ratio": {
+            "value": 0.46153846153846156,
+            "status": "ok",
+            "reason": null,
+            "basis": "derived"
+          }
+        },
+        "ebitda": {
+          "standardized": {
+            "value": 304,
+            "status": "ok",
+            "reason": null
+          },
+          "reported": {
+            "value": null,
+            "status": "missing",
+            "reason": "missing input: reported EBITDA"
+          },
+          "adjusted": {
+            "value": null,
+            "status": "missing",
+            "reason": "missing input: adjusted EBITDA"
+          },
+          "adjustments_total": null,
+          "adjustments_base": null,
+          "issues": []
+        }
+      },
+      {
+        "fiscal_year": 2024,
+        "metrics": {
+          "revenue_growth": {
+            "value": 0.125,
+            "status": "ok",
+            "reason": null,
+            "basis": "derived"
+          },
+          "gross_profit": {
+            "value": 729,
+            "status": "ok",
+            "reason": null,
+            "basis": "derived"
+          },
+          "gross_margin": {
+            "value": 0.405,
+            "status": "ok",
+            "reason": null,
+            "basis": "derived"
+          },
+          "ebitda": {
+            "value": 351,
+            "status": "ok",
+            "reason": null,
+            "basis": "derived"
+          },
+          "ebitda_margin": {
+            "value": 0.195,
+            "status": "ok",
+            "reason": null,
+            "basis": "derived"
+          },
+          "ebit_margin": {
+            "value": 0.155,
+            "status": "ok",
+            "reason": null,
+            "basis": "derived"
+          },
+          "net_margin": {
+            "value": 0.10458333333333333,
+            "status": "ok",
+            "reason": null,
+            "basis": "derived"
+          },
+          "effective_tax_rate": {
+            "value": 0.25,
+            "status": "ok",
+            "reason": null,
+            "basis": "derived"
+          },
+          "simple_fcf": {
+            "value": 165,
+            "status": "ok",
+            "reason": null,
+            "basis": "derived"
+          },
+          "fcf_conversion": {
+            "value": 0.8764940239043825,
+            "status": "ok",
+            "reason": null,
+            "basis": "derived"
+          },
+          "capex_pct_revenue": {
+            "value": 0.05,
+            "status": "ok",
+            "reason": null,
+            "basis": "derived"
+          },
+          "da_pct_revenue": {
+            "value": 0.04,
+            "status": "ok",
+            "reason": null,
+            "basis": "derived"
+          },
+          "capex_to_da": {
+            "value": 1.25,
+            "status": "ok",
+            "reason": null,
+            "basis": "derived"
+          },
+          "nwc": {
+            "value": 270,
+            "status": "ok",
+            "reason": null,
+            "basis": "derived"
+          },
+          "nwc_pct_revenue": {
+            "value": 0.15,
+            "status": "ok",
+            "reason": null,
+            "basis": "derived"
+          },
+          "change_in_nwc": {
+            "value": 30,
+            "status": "ok",
+            "reason": null,
+            "basis": "derived"
+          },
+          "net_debt": {
+            "value": 255,
+            "status": "ok",
+            "reason": null,
+            "basis": "derived"
+          },
+          "net_debt_to_ebitda": {
+            "value": 0.7264957264957265,
+            "status": "ok",
+            "reason": null,
+            "basis": "derived"
+          },
+          "interest_coverage": {
+            "value": 9.964285714285714,
+            "status": "ok",
+            "reason": null,
+            "basis": "derived"
+          },
+          "current_ratio": {
+            "value": 1.9285714285714286,
+            "status": "ok",
+            "reason": null,
+            "basis": "derived"
+          },
+          "quick_ratio": {
+            "value": 1.2857142857142858,
+            "status": "ok",
+            "reason": null,
+            "basis": "derived"
+          },
+          "cash_ratio": {
+            "value": 0.48214285714285715,
+            "status": "ok",
+            "reason": null,
+            "basis": "derived"
+          }
+        },
+        "ebitda": {
+          "standardized": {
+            "value": 351,
+            "status": "ok",
+            "reason": null
+          },
+          "reported": {
+            "value": null,
+            "status": "missing",
+            "reason": "missing input: reported EBITDA"
+          },
+          "adjusted": {
+            "value": null,
+            "status": "missing",
+            "reason": "missing input: adjusted EBITDA"
+          },
+          "adjustments_total": null,
+          "adjustments_base": null,
+          "issues": []
+        }
+      },
+      {
+        "fiscal_year": 2025,
+        "metrics": {
+          "revenue_growth": {
+            "value": 0.11111111111111116,
+            "status": "ok",
+            "reason": null,
+            "basis": "derived"
+          },
+          "gross_profit": {
+            "value": 820,
+            "status": "ok",
+            "reason": null,
+            "basis": "derived"
+          },
+          "gross_margin": {
+            "value": 0.41,
+            "status": "ok",
+            "reason": null,
+            "basis": "derived"
+          },
+          "ebitda": {
+            "value": 400,
+            "status": "ok",
+            "reason": null,
+            "basis": "derived"
+          },
+          "ebitda_margin": {
+            "value": 0.2,
+            "status": "ok",
+            "reason": null,
+            "basis": "derived"
+          },
+          "ebit_margin": {
+            "value": 0.16,
+            "status": "ok",
+            "reason": null,
+            "basis": "derived"
+          },
+          "net_margin": {
+            "value": 0.1095,
+            "status": "ok",
+            "reason": null,
+            "basis": "derived"
+          },
+          "effective_tax_rate": {
+            "value": 0.25,
+            "status": "ok",
+            "reason": null,
+            "basis": "derived"
+          },
+          "simple_fcf": {
+            "value": 190,
+            "status": "ok",
+            "reason": null,
+            "basis": "derived"
+          },
+          "fcf_conversion": {
+            "value": 0.867579908675799,
+            "status": "ok",
+            "reason": null,
+            "basis": "derived"
+          },
+          "capex_pct_revenue": {
+            "value": 0.05,
+            "status": "ok",
+            "reason": null,
+            "basis": "derived"
+          },
+          "da_pct_revenue": {
+            "value": 0.04,
+            "status": "ok",
+            "reason": null,
+            "basis": "derived"
+          },
+          "capex_to_da": {
+            "value": 1.25,
+            "status": "ok",
+            "reason": null,
+            "basis": "derived"
+          },
+          "nwc": {
+            "value": 300,
+            "status": "ok",
+            "reason": null,
+            "basis": "derived"
+          },
+          "nwc_pct_revenue": {
+            "value": 0.15,
+            "status": "ok",
+            "reason": null,
+            "basis": "derived"
+          },
+          "change_in_nwc": {
+            "value": 30,
+            "status": "ok",
+            "reason": null,
+            "basis": "derived"
+          },
+          "net_debt": {
+            "value": 250,
+            "status": "ok",
+            "reason": null,
+            "basis": "derived"
+          },
+          "net_debt_to_ebitda": {
+            "value": 0.625,
+            "status": "ok",
+            "reason": null,
+            "basis": "derived"
+          },
+          "interest_coverage": {
+            "value": 11.428571428571429,
+            "status": "ok",
+            "reason": null,
+            "basis": "derived"
+          },
+          "current_ratio": {
+            "value": 2,
+            "status": "ok",
+            "reason": null,
+            "basis": "derived"
+          },
+          "quick_ratio": {
+            "value": 1.3333333333333333,
+            "status": "ok",
+            "reason": null,
+            "basis": "derived"
+          },
+          "cash_ratio": {
+            "value": 0.5,
+            "status": "ok",
+            "reason": null,
+            "basis": "derived"
+          }
+        },
+        "ebitda": {
+          "standardized": {
+            "value": 400,
+            "status": "ok",
+            "reason": null
+          },
+          "reported": {
+            "value": 400,
+            "status": "ok",
+            "reason": null
+          },
+          "adjusted": {
+            "value": null,
+            "status": "missing",
+            "reason": "missing input: adjusted EBITDA"
+          },
+          "adjustments_total": null,
+          "adjustments_base": null,
+          "issues": []
+        }
+      }
+    ],
+    "issues": [],
+    "metric_definitions": {
+      "revenue_growth": {
+        "formula": "revenue_t / revenue_(t-1) − 1",
+        "items": [
+          "revenue"
+        ],
+        "not_meaningful": "NM for the first year, after a gap, or when prior revenue ≤ 0",
+        "basis": "derived"
+      },
+      "gross_profit": {
+        "formula": "revenue − cogs",
+        "items": [
+          "revenue",
+          "cogs"
+        ],
+        "not_meaningful": "—",
+        "basis": "derived"
+      },
+      "gross_margin": {
+        "formula": "(revenue − cogs) / revenue",
+        "items": [
+          "revenue",
+          "cogs"
+        ],
+        "not_meaningful": "NM when revenue ≤ 0",
+        "basis": "derived"
+      },
+      "ebitda": {
+        "formula": "ebit + da (standardised, D-03)",
+        "items": [
+          "ebit",
+          "da"
+        ],
+        "not_meaningful": "—",
+        "basis": "derived"
+      },
+      "ebitda_margin": {
+        "formula": "(ebit + da) / revenue",
+        "items": [
+          "ebit",
+          "da",
+          "revenue"
+        ],
+        "not_meaningful": "NM when revenue ≤ 0",
+        "basis": "derived"
+      },
+      "ebit_margin": {
+        "formula": "ebit / revenue",
+        "items": [
+          "ebit",
+          "revenue"
+        ],
+        "not_meaningful": "NM when revenue ≤ 0",
+        "basis": "derived"
+      },
+      "net_margin": {
+        "formula": "net_income / revenue",
+        "items": [
+          "net_income",
+          "revenue"
+        ],
+        "not_meaningful": "NM when revenue ≤ 0",
+        "basis": "derived"
+      },
+      "effective_tax_rate": {
+        "formula": "tax_expense / pretax_income",
+        "items": [
+          "tax_expense",
+          "pretax_income"
+        ],
+        "not_meaningful": "NM when pre-tax income ≤ 0",
+        "basis": "derived"
+      },
+      "simple_fcf": {
+        "formula": "cfo − capex",
+        "items": [
+          "cfo",
+          "capex"
+        ],
+        "not_meaningful": "—",
+        "basis": "derived"
+      },
+      "fcf_conversion": {
+        "formula": "(cfo − capex) / net_income",
+        "items": [
+          "cfo",
+          "capex",
+          "net_income"
+        ],
+        "not_meaningful": "NM when net income ≤ 0",
+        "basis": "derived"
+      },
+      "capex_pct_revenue": {
+        "formula": "capex / revenue",
+        "items": [
+          "capex",
+          "revenue"
+        ],
+        "not_meaningful": "NM when revenue ≤ 0",
+        "basis": "derived"
+      },
+      "da_pct_revenue": {
+        "formula": "da / revenue",
+        "items": [
+          "da",
+          "revenue"
+        ],
+        "not_meaningful": "NM when revenue ≤ 0",
+        "basis": "derived"
+      },
+      "capex_to_da": {
+        "formula": "capex / da",
+        "items": [
+          "capex",
+          "da"
+        ],
+        "not_meaningful": "NM when D&A ≤ 0",
+        "basis": "derived"
+      },
+      "nwc": {
+        "formula": "AR + inventory + other op. current assets − AP − other op. current liabilities (operating NWC)",
+        "items": [
+          "accounts_receivable",
+          "inventory",
+          "other_current_operating_assets",
+          "accounts_payable",
+          "other_current_operating_liabilities"
+        ],
+        "not_meaningful": "—; the two 'other' items are optional and disclosed",
+        "basis": "derived"
+      },
+      "nwc_pct_revenue": {
+        "formula": "operating NWC / revenue",
+        "items": [
+          "accounts_receivable",
+          "inventory",
+          "other_current_operating_assets",
+          "accounts_payable",
+          "other_current_operating_liabilities",
+          "revenue"
+        ],
+        "not_meaningful": "NM when revenue ≤ 0",
+        "basis": "derived"
+      },
+      "change_in_nwc": {
+        "formula": "NWC_t − NWC_(t-1)",
+        "items": [
+          "accounts_receivable",
+          "inventory",
+          "other_current_operating_assets",
+          "accounts_payable",
+          "other_current_operating_liabilities"
+        ],
+        "not_meaningful": "NM for the first year or after a gap",
+        "basis": "derived"
+      },
+      "net_debt": {
+        "formula": "total_debt − cash",
+        "items": [
+          "total_debt",
+          "cash"
+        ],
+        "not_meaningful": "—",
+        "basis": "derived"
+      },
+      "net_debt_to_ebitda": {
+        "formula": "(total_debt − cash) / (ebit + da)",
+        "items": [
+          "total_debt",
+          "cash",
+          "ebit",
+          "da"
+        ],
+        "not_meaningful": "NM when EBITDA ≤ 0",
+        "basis": "derived"
+      },
+      "interest_coverage": {
+        "formula": "ebit / interest_expense",
+        "items": [
+          "ebit",
+          "interest_expense"
+        ],
+        "not_meaningful": "NM when interest expense ≤ 0",
+        "basis": "derived"
+      },
+      "current_ratio": {
+        "formula": "total_current_assets / total_current_liabilities",
+        "items": [
+          "total_current_assets",
+          "total_current_liabilities"
+        ],
+        "not_meaningful": "NM when total current liabilities are 0; missing if any input is missing",
+        "basis": "derived"
+      },
+      "quick_ratio": {
+        "formula": "(cash + marketable_securities + accounts_receivable) / total_current_liabilities",
+        "items": [
+          "cash",
+          "marketable_securities",
+          "accounts_receivable",
+          "total_current_liabilities"
+        ],
+        "not_meaningful": "NM when total current liabilities are 0; missing if any input is missing",
+        "basis": "derived"
+      },
+      "cash_ratio": {
+        "formula": "(cash + marketable_securities) / total_current_liabilities",
+        "items": [
+          "cash",
+          "marketable_securities",
+          "total_current_liabilities"
+        ],
+        "not_meaningful": "NM when total current liabilities are 0; missing if any input is missing",
+        "basis": "derived"
+      }
+    }
+  }
+}

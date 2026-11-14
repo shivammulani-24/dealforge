@@ -1,0 +1,1278 @@
+{
+  "$recorded": {
+    "operation": {
+      "method": "get",
+      "path": "/api/v1/runs/{run_id}",
+      "status": 200
+    },
+    "engine_version": "0.1.0",
+    "note": "frozen KA-DCF-03 run",
+    "source": "scripts/record-fixtures.mjs against a live backend; synthetic sample data only"
+  },
+  "body": {
+    "context": {
+      "company": {
+        "id": 1,
+        "name": "Ardent Precision Components (SYNTHETIC)",
+        "currency": "INR",
+        "scale": "crores",
+        "is_synthetic": true
+      },
+      "project": {
+        "id": 1,
+        "name": "Ardent valuation (sample)"
+      },
+      "scenario": {
+        "id": 1,
+        "name": "Base"
+      }
+    },
+    "result_basis": "derived",
+    "presentation": {
+      "basis": "derived",
+      "years": [
+        {
+          "t": 1,
+          "ebit_margin": {
+            "value": 0.13999999999999999,
+            "status": "ok",
+            "reason": null
+          },
+          "ufcf_margin": {
+            "value": 0.08388888888888889,
+            "status": "ok",
+            "reason": null
+          }
+        },
+        {
+          "t": 2,
+          "ebit_margin": {
+            "value": 0.145,
+            "status": "ok",
+            "reason": null
+          },
+          "ufcf_margin": {
+            "value": 0.08893691588785048,
+            "status": "ok",
+            "reason": null
+          }
+        },
+        {
+          "t": 3,
+          "ebit_margin": {
+            "value": 0.15,
+            "status": "ok",
+            "reason": null
+          },
+          "ufcf_margin": {
+            "value": 0.09900943396226415,
+            "status": "ok",
+            "reason": null
+          }
+        },
+        {
+          "t": 4,
+          "ebit_margin": {
+            "value": 0.155,
+            "status": "ok",
+            "reason": null
+          },
+          "ufcf_margin": {
+            "value": 0.10410714285714286,
+            "status": "ok",
+            "reason": null
+          }
+        },
+        {
+          "t": 5,
+          "ebit_margin": {
+            "value": 0.16,
+            "status": "ok",
+            "reason": null
+          },
+          "ufcf_margin": {
+            "value": 0.10923076923076923,
+            "status": "ok",
+            "reason": null
+          }
+        }
+      ]
+    },
+    "engine_compatible": true,
+    "id": 1,
+    "scenario_id": 1,
+    "project_id": 1,
+    "label": "Fixture run",
+    "engine_version": "0.1.0",
+    "input_hash": "sha256:37c66a5382d863399822cc79268966c803179e0fae0d36679fc0c867efcf8114",
+    "created_at": "2026-11-14T13:34:29.722630+00:00",
+    "inputs": {
+      "bridge": {
+        "cash": 150,
+        "include_leases_in_debt": true,
+        "lease_liabilities": 50,
+        "non_controlling_interest": 30,
+        "non_operating_assets": 40,
+        "other_debt_like_claims": 20,
+        "preferred_equity": 0,
+        "total_debt": 400
+      },
+      "current_share_price": 20,
+      "dates": {
+        "market_data_date": "2025-04-30",
+        "statement_date": "2025-03-31",
+        "valuation_date": "2025-03-31"
+      },
+      "forecast": {
+        "base_nwc": 300,
+        "base_revenue": 2000,
+        "years": [
+          {
+            "capex_pct_revenue": 0.05,
+            "da_pct_revenue": 0.04,
+            "ebitda_margin": 0.18,
+            "nwc_pct_revenue": 0.15,
+            "revenue_growth": 0.08
+          },
+          {
+            "capex_pct_revenue": 0.05,
+            "da_pct_revenue": 0.04,
+            "ebitda_margin": 0.185,
+            "nwc_pct_revenue": 0.15,
+            "revenue_growth": 0.07
+          },
+          {
+            "capex_pct_revenue": 0.045,
+            "da_pct_revenue": 0.04,
+            "ebitda_margin": 0.19,
+            "nwc_pct_revenue": 0.15,
+            "revenue_growth": 0.06
+          },
+          {
+            "capex_pct_revenue": 0.045,
+            "da_pct_revenue": 0.04,
+            "ebitda_margin": 0.195,
+            "nwc_pct_revenue": 0.15,
+            "revenue_growth": 0.05
+          },
+          {
+            "capex_pct_revenue": 0.045,
+            "da_pct_revenue": 0.04,
+            "ebitda_margin": 0.2,
+            "nwc_pct_revenue": 0.15,
+            "revenue_growth": 0.04
+          }
+        ]
+      },
+      "is_financial_institution": false,
+      "peer_ev_ebitda_range": null,
+      "share_capital": {
+        "basic_shares": 100,
+        "convertibles": [],
+        "options": [
+          {
+            "count": 5,
+            "kind": "option",
+            "label": "ESOP 2021",
+            "strike": 12
+          }
+        ],
+        "rsus": [
+          {
+            "count": 1,
+            "label": "RSU plan"
+          }
+        ]
+      },
+      "tax_rate": 0.25,
+      "terminal_growth": 0.025,
+      "wacc_assumptions": {
+        "cost_of_preferred": null,
+        "debt_value_basis": "book",
+        "equity_risk_premium": 0.055,
+        "levered_beta": 1.1,
+        "pre_tax_cost_of_debt": 0.07,
+        "risk_free_rate": 0.045,
+        "size_premium": 0,
+        "target_debt_to_capital": null
+      },
+      "wacc_override": null
+    },
+    "result": {
+      "bridge": {
+        "enterprise_value": 3558.790701488767,
+        "equity_value": 3248.790701488767,
+        "issues": [],
+        "lines": [
+          {
+            "amount": -400,
+            "label": "Less: total debt"
+          },
+          {
+            "amount": -50,
+            "label": "Less: lease liabilities"
+          },
+          {
+            "amount": 0,
+            "label": "Less: convertible debt (face)"
+          },
+          {
+            "amount": 0,
+            "label": "Less: preferred equity"
+          },
+          {
+            "amount": -30,
+            "label": "Less: non-controlling interest"
+          },
+          {
+            "amount": -20,
+            "label": "Less: other debt-like claims"
+          },
+          {
+            "amount": 150,
+            "label": "Plus: cash and equivalents"
+          },
+          {
+            "amount": 40,
+            "label": "Plus: non-operating assets"
+          }
+        ]
+      },
+      "current_share_price": 20,
+      "engine_version": "0.1.0",
+      "forecast": {
+        "issues": [],
+        "years": [
+          {
+            "capex": 108,
+            "change_in_nwc": 24,
+            "da": 86.4,
+            "ebit": 302.4,
+            "ebitda": 388.8,
+            "nwc": 324,
+            "revenue": 2160,
+            "t": 1
+          },
+          {
+            "capex": 115.56000000000002,
+            "change_in_nwc": 22.680000000000007,
+            "da": 92.44800000000001,
+            "ebit": 335.124,
+            "ebitda": 427.57200000000006,
+            "nwc": 346.68,
+            "revenue": 2311.2000000000003,
+            "t": 2
+          },
+          {
+            "capex": 110.24424,
+            "change_in_nwc": 20.800800000000038,
+            "da": 97.99488000000001,
+            "ebit": 367.48080000000004,
+            "ebitda": 465.47568000000007,
+            "nwc": 367.48080000000004,
+            "revenue": 2449.8720000000003,
+            "t": 3
+          },
+          {
+            "capex": 115.75645200000002,
+            "change_in_nwc": 18.374040000000036,
+            "da": 102.89462400000002,
+            "ebit": 398.7166680000001,
+            "ebitda": 501.6112920000001,
+            "nwc": 385.8548400000001,
+            "revenue": 2572.3656000000005,
+            "t": 4
+          },
+          {
+            "capex": 120.38671008000001,
+            "change_in_nwc": 15.434193600000015,
+            "da": 107.01040896000002,
+            "ebit": 428.0416358400001,
+            "ebitda": 535.0520448000001,
+            "nwc": 401.2890336000001,
+            "revenue": 2675.2602240000006,
+            "t": 5
+          }
+        ]
+      },
+      "implied_exit_multiple": {
+        "reason": null,
+        "status": "ok",
+        "value": 7.884836607796121
+      },
+      "input_hash": "sha256:37c66a5382d863399822cc79268966c803179e0fae0d36679fc0c867efcf8114",
+      "issues": [
+        {
+          "code": "MARKET_DATA_DATE_DIFFERS",
+          "field": "market_data_date",
+          "message": "Market data is dated 30 days after the valuation date.",
+          "severity": "info"
+        },
+        {
+          "code": "DEBT_AT_BOOK",
+          "field": null,
+          "message": "Debt weight uses book value as an approximation of market value.",
+          "severity": "info"
+        },
+        {
+          "code": "DILUTION_SOLVED",
+          "field": null,
+          "message": "Diluted shares depend on the implied price (options/convertibles); solved exactly for a self-consistent price of 31.2150.",
+          "severity": "info"
+        }
+      ],
+      "per_share": {
+        "circular": true,
+        "dilution": {
+          "basic_shares": 100,
+          "converted_face": 0,
+          "diluted_shares": 104.07784759636252,
+          "lines": [
+            {
+              "gross_shares": 5,
+              "included": true,
+              "kind": "option",
+              "label": "ESOP 2021",
+              "net_new_shares": 3.077847596362513,
+              "note": "in the money (strike 12.0000 < price 31.2150); TSM",
+              "proceeds": 60,
+              "shares_repurchased": 1.922152403637487
+            },
+            {
+              "gross_shares": 1,
+              "included": true,
+              "kind": "rsu",
+              "label": "RSU plan",
+              "net_new_shares": 1,
+              "note": "added in full",
+              "proceeds": 0,
+              "shares_repurchased": 0
+            }
+          ],
+          "method": "treasury stock method (options/warrants) and if-converted (convertibles) at an observed price",
+          "price": 31.215006617818556,
+          "unconverted_face": 0
+        },
+        "equity_value_before_conversion": 3248.790701488767,
+        "equity_value_to_common": 3248.790701488767,
+        "issues": [
+          {
+            "code": "DILUTION_SOLVED",
+            "field": null,
+            "message": "Diluted shares depend on the implied price (options/convertibles); solved exactly for a self-consistent price of 31.2150.",
+            "severity": "info"
+          }
+        ],
+        "method": "self-consistent TSM / if-converted solution (closed form per in-the-money set)",
+        "value_per_share": 31.215006617818556
+      },
+      "schedule": {
+        "convention": "Valuation date = last fiscal year-end balance-sheet date; forecast cash flows are discounted from each fiscal year-end (end-of-year convention, exponent t = 1..N); market data (price, risk-free rate, beta, ERP) is dated separately.",
+        "issues": [
+          {
+            "code": "MARKET_DATA_DATE_DIFFERS",
+            "field": "market_data_date",
+            "message": "Market data is dated 30 days after the valuation date.",
+            "severity": "info"
+          }
+        ],
+        "market_data_date": "2025-04-30",
+        "market_data_gap_days": 30,
+        "periods": [
+          {
+            "end_date": "2026-03-31",
+            "label": "FY2026",
+            "t": 1
+          },
+          {
+            "end_date": "2027-03-31",
+            "label": "FY2027",
+            "t": 2
+          },
+          {
+            "end_date": "2028-03-31",
+            "label": "FY2028",
+            "t": 3
+          },
+          {
+            "end_date": "2029-03-31",
+            "label": "FY2029",
+            "t": 4
+          },
+          {
+            "end_date": "2030-03-31",
+            "label": "FY2030",
+            "t": 5
+          }
+        ],
+        "statement_date": "2025-03-31",
+        "valuation_date": "2025-03-31"
+      },
+      "terminal": {
+        "final_ufcf": 292.22073216000007,
+        "growth": 0.025,
+        "issues": [],
+        "value": 4218.797949915211,
+        "wacc": 0.0959980079681275
+      },
+      "ufcf": [
+        {
+          "capex": 108,
+          "change_in_nwc": 24,
+          "da": 86.4,
+          "ebit": 302.4,
+          "issues": [],
+          "nopat": 226.79999999999998,
+          "t": 1,
+          "taxes_on_ebit": 75.6,
+          "ufcf": 181.2
+        },
+        {
+          "capex": 115.56000000000002,
+          "change_in_nwc": 22.680000000000007,
+          "da": 92.44800000000001,
+          "ebit": 335.124,
+          "issues": [],
+          "nopat": 251.34300000000002,
+          "t": 2,
+          "taxes_on_ebit": 83.781,
+          "ufcf": 205.55100000000004
+        },
+        {
+          "capex": 110.24424,
+          "change_in_nwc": 20.800800000000038,
+          "da": 97.99488000000001,
+          "ebit": 367.48080000000004,
+          "issues": [],
+          "nopat": 275.61060000000003,
+          "t": 3,
+          "taxes_on_ebit": 91.87020000000001,
+          "ufcf": 242.56044000000003
+        },
+        {
+          "capex": 115.75645200000002,
+          "change_in_nwc": 18.374040000000036,
+          "da": 102.89462400000002,
+          "ebit": 398.7166680000001,
+          "issues": [],
+          "nopat": 299.0375010000001,
+          "t": 4,
+          "taxes_on_ebit": 99.67916700000002,
+          "ufcf": 267.80163300000004
+        },
+        {
+          "capex": 120.38671008000001,
+          "change_in_nwc": 15.434193600000015,
+          "da": 107.01040896000002,
+          "ebit": 428.0416358400001,
+          "issues": [],
+          "nopat": 321.0312268800001,
+          "t": 5,
+          "taxes_on_ebit": 107.01040896000002,
+          "ufcf": 292.22073216000007
+        }
+      ],
+      "upside_vs_market": {
+        "reason": null,
+        "status": "ok",
+        "value": 0.5607503308909279
+      },
+      "valuation": {
+        "enterprise_value": 3558.790701488767,
+        "flows": [
+          {
+            "cash_flow": 181.2,
+            "discount_factor": 0.9124104174732047,
+            "present_value": 165.32876764614468,
+            "t": 1
+          },
+          {
+            "cash_flow": 205.55100000000004,
+            "discount_factor": 0.8324927699136278,
+            "present_value": 171.11972134851612,
+            "t": 2
+          },
+          {
+            "cash_flow": 242.56044000000003,
+            "discount_factor": 0.7595750757403177,
+            "present_value": 184.2428645846048,
+            "t": 3
+          },
+          {
+            "cash_flow": 267.80163300000004,
+            "discount_factor": 0.6930442119584643,
+            "present_value": 185.5983717036749,
+            "t": 4
+          },
+          {
+            "cash_flow": 292.22073216000007,
+            "discount_factor": 0.6323407587604106,
+            "present_value": 184.78307949957718,
+            "t": 5
+          }
+        ],
+        "issues": [],
+        "pv_terminal_value": 2667.717896706249,
+        "sum_pv_flows": 891.0728047825177,
+        "terminal_value": 4218.797949915211,
+        "tv_share_of_ev": {
+          "reason": null,
+          "status": "ok",
+          "value": 0.7496135964360728
+        }
+      },
+      "wacc": 0.0959980079681275,
+      "wacc_build": {
+        "after_tax_cost_of_debt": 0.052500000000000005,
+        "cost_of_equity": 0.10550000000000001,
+        "cost_of_preferred": null,
+        "issues": [
+          {
+            "code": "DEBT_AT_BOOK",
+            "field": null,
+            "message": "Debt weight uses book value as an approximation of market value.",
+            "severity": "info"
+          }
+        ],
+        "wacc": 0.0959980079681275,
+        "weight_debt": 0.17928286852589642,
+        "weight_equity": 0.8207171314741036,
+        "weight_preferred": 0
+      }
+    },
+    "warnings": [
+      {
+        "code": "MARKET_DATA_DATE_DIFFERS",
+        "message": "Market data is dated 30 days after the valuation date.",
+        "severity": "info",
+        "field": "market_data_date"
+      },
+      {
+        "code": "DEBT_AT_BOOK",
+        "message": "Debt weight uses book value as an approximation of market value.",
+        "severity": "info",
+        "field": null
+      },
+      {
+        "code": "DILUTION_SOLVED",
+        "message": "Diluted shares depend on the implied price (options/convertibles); solved exactly for a self-consistent price of 31.2150.",
+        "severity": "info",
+        "field": null
+      }
+    ],
+    "provenance": {
+      "inputs": {
+        "forecast.base_revenue": {
+          "status": "ok",
+          "basis": "reported",
+          "fiscal_year": 2025,
+          "line_item_id": 86,
+          "source_id": 1,
+          "source_title": "Synthetic sample data: ardent_precision_synthetic.csv",
+          "source_ref": "ardent_precision_synthetic.csv: row 3, column FY2025",
+          "original_text": "2,000.0"
+        },
+        "forecast.base_nwc": {
+          "status": "ok",
+          "basis": "derived",
+          "formula": "AR + inventory + other op. assets − AP − other op. liabilities",
+          "partial": false,
+          "components": {
+            "accounts_receivable": {
+              "status": "ok",
+              "basis": "reported",
+              "fiscal_year": 2025,
+              "line_item_id": 64,
+              "source_id": 1,
+              "source_title": "Synthetic sample data: ardent_precision_synthetic.csv",
+              "source_ref": "ardent_precision_synthetic.csv: row 15, column FY2025",
+              "original_text": "250"
+            },
+            "inventory": {
+              "status": "ok",
+              "basis": "reported",
+              "fiscal_year": 2025,
+              "line_item_id": 73,
+              "source_id": 1,
+              "source_title": "Synthetic sample data: ardent_precision_synthetic.csv",
+              "source_ref": "ardent_precision_synthetic.csv: row 16, column FY2025",
+              "original_text": "175"
+            },
+            "other_current_operating_assets": {
+              "status": "ok",
+              "basis": "reported",
+              "fiscal_year": 2025,
+              "line_item_id": 80,
+              "source_id": 1,
+              "source_title": "Synthetic sample data: ardent_precision_synthetic.csv",
+              "source_ref": "ardent_precision_synthetic.csv: row 17, column FY2025",
+              "original_text": "25"
+            },
+            "accounts_payable": {
+              "status": "ok",
+              "basis": "reported",
+              "fiscal_year": 2025,
+              "line_item_id": 63,
+              "source_id": 1,
+              "source_title": "Synthetic sample data: ardent_precision_synthetic.csv",
+              "source_ref": "ardent_precision_synthetic.csv: row 18, column FY2025",
+              "original_text": "125"
+            },
+            "other_current_operating_liabilities": {
+              "status": "ok",
+              "basis": "reported",
+              "fiscal_year": 2025,
+              "line_item_id": 81,
+              "source_id": 1,
+              "source_title": "Synthetic sample data: ardent_precision_synthetic.csv",
+              "source_ref": "ardent_precision_synthetic.csv: row 19, column FY2025",
+              "original_text": "25"
+            }
+          }
+        },
+        "bridge.cash": {
+          "status": "ok",
+          "basis": "reported",
+          "fiscal_year": 2025,
+          "line_item_id": 67,
+          "source_id": 1,
+          "source_title": "Synthetic sample data: ardent_precision_synthetic.csv",
+          "source_ref": "ardent_precision_synthetic.csv: row 20, column FY2025",
+          "original_text": "150"
+        },
+        "bridge.total_debt": {
+          "status": "ok",
+          "basis": "reported",
+          "fiscal_year": 2025,
+          "line_item_id": 91,
+          "source_id": 1,
+          "source_title": "Synthetic sample data: ardent_precision_synthetic.csv",
+          "source_ref": "ardent_precision_synthetic.csv: row 21, column FY2025",
+          "original_text": "400"
+        },
+        "bridge.lease_liabilities": {
+          "status": "ok",
+          "basis": "reported",
+          "fiscal_year": 2025,
+          "line_item_id": 74,
+          "source_id": 1,
+          "source_title": "Synthetic sample data: ardent_precision_synthetic.csv",
+          "source_ref": "ardent_precision_synthetic.csv: row 22, column FY2025",
+          "original_text": "50"
+        },
+        "bridge.preferred_equity": {
+          "status": "ok",
+          "basis": "reported",
+          "fiscal_year": 2025,
+          "line_item_id": 83,
+          "source_id": 1,
+          "source_title": "Synthetic sample data: ardent_precision_synthetic.csv",
+          "source_ref": "ardent_precision_synthetic.csv: row 23, column FY2025",
+          "original_text": "0"
+        },
+        "bridge.non_controlling_interest": {
+          "status": "ok",
+          "basis": "reported",
+          "fiscal_year": 2025,
+          "line_item_id": 77,
+          "source_id": 1,
+          "source_title": "Synthetic sample data: ardent_precision_synthetic.csv",
+          "source_ref": "ardent_precision_synthetic.csv: row 24, column FY2025",
+          "original_text": "30"
+        },
+        "bridge.other_debt_like_claims": {
+          "status": "ok",
+          "basis": "reported",
+          "fiscal_year": 2025,
+          "line_item_id": 82,
+          "source_id": 1,
+          "source_title": "Synthetic sample data: ardent_precision_synthetic.csv",
+          "source_ref": "ardent_precision_synthetic.csv: row 25, column FY2025",
+          "original_text": "20"
+        },
+        "bridge.non_operating_assets": {
+          "status": "ok",
+          "basis": "reported",
+          "fiscal_year": 2025,
+          "line_item_id": 78,
+          "source_id": 1,
+          "source_title": "Synthetic sample data: ardent_precision_synthetic.csv",
+          "source_ref": "ardent_precision_synthetic.csv: row 26, column FY2025",
+          "original_text": "40"
+        },
+        "bridge.include_leases_in_debt": {
+          "basis": "assumed",
+          "source": "scenario setting"
+        },
+        "share_capital.basic_shares": {
+          "status": "ok",
+          "basis": "reported",
+          "fiscal_year": 2025,
+          "line_item_id": 65,
+          "source_id": 1,
+          "source_title": "Synthetic sample data: ardent_precision_synthetic.csv",
+          "source_ref": "ardent_precision_synthetic.csv: row 33, column FY2025",
+          "original_text": "100"
+        },
+        "share_capital.option:ESOP 2021": {
+          "basis": "reported",
+          "source_id": 2,
+          "source_title": "Synthetic sample: share instruments",
+          "source_ref": "synthetic sample"
+        },
+        "share_capital.rsu:RSU plan": {
+          "basis": "reported",
+          "source_id": 2,
+          "source_title": "Synthetic sample: share instruments",
+          "source_ref": "synthetic sample"
+        },
+        "forecast.years[1].revenue_growth": {
+          "status": "ok",
+          "basis": "assumed",
+          "assumption_id": 1,
+          "draft": false,
+          "source_id": null,
+          "rationale": "Synthetic KA-DCF-03 case: growth decelerates from 8% to 4% as the business matures (history: 12.5% and 11.1%)."
+        },
+        "forecast.years[1].ebitda_margin": {
+          "status": "ok",
+          "basis": "assumed",
+          "assumption_id": 6,
+          "draft": false,
+          "source_id": null,
+          "rationale": "Synthetic KA-DCF-03 case: margin steps up 50bp a year from 18% to 20%, in line with the 19-20% achieved historically."
+        },
+        "forecast.years[1].da_pct_revenue": {
+          "status": "ok",
+          "basis": "assumed",
+          "assumption_id": 11,
+          "draft": false,
+          "source_id": null,
+          "rationale": "Synthetic KA-DCF-03 case: D&A held at the historical 4.0% of revenue."
+        },
+        "forecast.years[1].capex_pct_revenue": {
+          "status": "ok",
+          "basis": "assumed",
+          "assumption_id": 16,
+          "draft": false,
+          "source_id": null,
+          "rationale": "Synthetic KA-DCF-03 case: CapEx 5.0% falling to 4.5% of revenue, still above D&A in the final year."
+        },
+        "forecast.years[1].nwc_pct_revenue": {
+          "status": "ok",
+          "basis": "assumed",
+          "assumption_id": 21,
+          "draft": false,
+          "source_id": null,
+          "rationale": "Synthetic KA-DCF-03 case: operating NWC held at the historical 15% of revenue."
+        },
+        "forecast.years[2].revenue_growth": {
+          "status": "ok",
+          "basis": "assumed",
+          "assumption_id": 2,
+          "draft": false,
+          "source_id": null,
+          "rationale": "Synthetic KA-DCF-03 case: growth decelerates from 8% to 4% as the business matures (history: 12.5% and 11.1%)."
+        },
+        "forecast.years[2].ebitda_margin": {
+          "status": "ok",
+          "basis": "assumed",
+          "assumption_id": 7,
+          "draft": false,
+          "source_id": null,
+          "rationale": "Synthetic KA-DCF-03 case: margin steps up 50bp a year from 18% to 20%, in line with the 19-20% achieved historically."
+        },
+        "forecast.years[2].da_pct_revenue": {
+          "status": "ok",
+          "basis": "assumed",
+          "assumption_id": 12,
+          "draft": false,
+          "source_id": null,
+          "rationale": "Synthetic KA-DCF-03 case: D&A held at the historical 4.0% of revenue."
+        },
+        "forecast.years[2].capex_pct_revenue": {
+          "status": "ok",
+          "basis": "assumed",
+          "assumption_id": 17,
+          "draft": false,
+          "source_id": null,
+          "rationale": "Synthetic KA-DCF-03 case: CapEx 5.0% falling to 4.5% of revenue, still above D&A in the final year."
+        },
+        "forecast.years[2].nwc_pct_revenue": {
+          "status": "ok",
+          "basis": "assumed",
+          "assumption_id": 22,
+          "draft": false,
+          "source_id": null,
+          "rationale": "Synthetic KA-DCF-03 case: operating NWC held at the historical 15% of revenue."
+        },
+        "forecast.years[3].revenue_growth": {
+          "status": "ok",
+          "basis": "assumed",
+          "assumption_id": 3,
+          "draft": false,
+          "source_id": null,
+          "rationale": "Synthetic KA-DCF-03 case: growth decelerates from 8% to 4% as the business matures (history: 12.5% and 11.1%)."
+        },
+        "forecast.years[3].ebitda_margin": {
+          "status": "ok",
+          "basis": "assumed",
+          "assumption_id": 8,
+          "draft": false,
+          "source_id": null,
+          "rationale": "Synthetic KA-DCF-03 case: margin steps up 50bp a year from 18% to 20%, in line with the 19-20% achieved historically."
+        },
+        "forecast.years[3].da_pct_revenue": {
+          "status": "ok",
+          "basis": "assumed",
+          "assumption_id": 13,
+          "draft": false,
+          "source_id": null,
+          "rationale": "Synthetic KA-DCF-03 case: D&A held at the historical 4.0% of revenue."
+        },
+        "forecast.years[3].capex_pct_revenue": {
+          "status": "ok",
+          "basis": "assumed",
+          "assumption_id": 18,
+          "draft": false,
+          "source_id": null,
+          "rationale": "Synthetic KA-DCF-03 case: CapEx 5.0% falling to 4.5% of revenue, still above D&A in the final year."
+        },
+        "forecast.years[3].nwc_pct_revenue": {
+          "status": "ok",
+          "basis": "assumed",
+          "assumption_id": 23,
+          "draft": false,
+          "source_id": null,
+          "rationale": "Synthetic KA-DCF-03 case: operating NWC held at the historical 15% of revenue."
+        },
+        "forecast.years[4].revenue_growth": {
+          "status": "ok",
+          "basis": "assumed",
+          "assumption_id": 4,
+          "draft": false,
+          "source_id": null,
+          "rationale": "Synthetic KA-DCF-03 case: growth decelerates from 8% to 4% as the business matures (history: 12.5% and 11.1%)."
+        },
+        "forecast.years[4].ebitda_margin": {
+          "status": "ok",
+          "basis": "assumed",
+          "assumption_id": 9,
+          "draft": false,
+          "source_id": null,
+          "rationale": "Synthetic KA-DCF-03 case: margin steps up 50bp a year from 18% to 20%, in line with the 19-20% achieved historically."
+        },
+        "forecast.years[4].da_pct_revenue": {
+          "status": "ok",
+          "basis": "assumed",
+          "assumption_id": 14,
+          "draft": false,
+          "source_id": null,
+          "rationale": "Synthetic KA-DCF-03 case: D&A held at the historical 4.0% of revenue."
+        },
+        "forecast.years[4].capex_pct_revenue": {
+          "status": "ok",
+          "basis": "assumed",
+          "assumption_id": 19,
+          "draft": false,
+          "source_id": null,
+          "rationale": "Synthetic KA-DCF-03 case: CapEx 5.0% falling to 4.5% of revenue, still above D&A in the final year."
+        },
+        "forecast.years[4].nwc_pct_revenue": {
+          "status": "ok",
+          "basis": "assumed",
+          "assumption_id": 24,
+          "draft": false,
+          "source_id": null,
+          "rationale": "Synthetic KA-DCF-03 case: operating NWC held at the historical 15% of revenue."
+        },
+        "forecast.years[5].revenue_growth": {
+          "status": "ok",
+          "basis": "assumed",
+          "assumption_id": 5,
+          "draft": false,
+          "source_id": null,
+          "rationale": "Synthetic KA-DCF-03 case: growth decelerates from 8% to 4% as the business matures (history: 12.5% and 11.1%)."
+        },
+        "forecast.years[5].ebitda_margin": {
+          "status": "ok",
+          "basis": "assumed",
+          "assumption_id": 10,
+          "draft": false,
+          "source_id": null,
+          "rationale": "Synthetic KA-DCF-03 case: margin steps up 50bp a year from 18% to 20%, in line with the 19-20% achieved historically."
+        },
+        "forecast.years[5].da_pct_revenue": {
+          "status": "ok",
+          "basis": "assumed",
+          "assumption_id": 15,
+          "draft": false,
+          "source_id": null,
+          "rationale": "Synthetic KA-DCF-03 case: D&A held at the historical 4.0% of revenue."
+        },
+        "forecast.years[5].capex_pct_revenue": {
+          "status": "ok",
+          "basis": "assumed",
+          "assumption_id": 20,
+          "draft": false,
+          "source_id": null,
+          "rationale": "Synthetic KA-DCF-03 case: CapEx 5.0% falling to 4.5% of revenue, still above D&A in the final year."
+        },
+        "forecast.years[5].nwc_pct_revenue": {
+          "status": "ok",
+          "basis": "assumed",
+          "assumption_id": 25,
+          "draft": false,
+          "source_id": null,
+          "rationale": "Synthetic KA-DCF-03 case: operating NWC held at the historical 15% of revenue."
+        },
+        "tax_rate": {
+          "status": "ok",
+          "basis": "assumed",
+          "assumption_id": 26,
+          "draft": false,
+          "source_id": null,
+          "rationale": "Synthetic KA-DCF-03 case: normalised 25% tax rate (D-05)."
+        },
+        "terminal_growth": {
+          "status": "ok",
+          "basis": "assumed",
+          "assumption_id": 27,
+          "draft": false,
+          "source_id": null,
+          "rationale": "Synthetic KA-DCF-03 case: 2.5% long-run nominal growth, below the 4.5% risk-free rate."
+        },
+        "wacc_assumptions.risk_free_rate": {
+          "status": "ok",
+          "basis": "assumed",
+          "assumption_id": 28,
+          "draft": false,
+          "source_id": null,
+          "rationale": "Synthetic KA-DCF-03 case: 4.5% risk-free rate for the cash-flow currency."
+        },
+        "wacc_assumptions.levered_beta": {
+          "status": "ok",
+          "basis": "assumed",
+          "assumption_id": 29,
+          "draft": false,
+          "source_id": null,
+          "rationale": "Synthetic KA-DCF-03 case: levered beta of 1.1."
+        },
+        "wacc_assumptions.equity_risk_premium": {
+          "status": "ok",
+          "basis": "assumed",
+          "assumption_id": 30,
+          "draft": false,
+          "source_id": null,
+          "rationale": "Synthetic KA-DCF-03 case: 5.5% equity risk premium."
+        },
+        "wacc_assumptions.pre_tax_cost_of_debt": {
+          "status": "ok",
+          "basis": "assumed",
+          "assumption_id": 31,
+          "draft": false,
+          "source_id": null,
+          "rationale": "Synthetic KA-DCF-03 case: 7% pre-tax cost of debt."
+        },
+        "wacc_assumptions.size_premium": {
+          "status": "ok",
+          "basis": "assumed",
+          "assumption_id": 32,
+          "draft": false,
+          "source_id": null,
+          "rationale": "Synthetic KA-DCF-03 case: no size premium applied."
+        },
+        "wacc_assumptions.cost_of_preferred": {
+          "status": "missing",
+          "reason": "assumption not set"
+        },
+        "wacc_assumptions.target_debt_to_capital": {
+          "status": "missing",
+          "reason": "assumption not set"
+        },
+        "current_share_price": {
+          "status": "ok",
+          "basis": "assumed",
+          "market_data_date": "2025-04-30",
+          "source_id": null,
+          "rationale": "Synthetic share price of 20.00 on 2025-04-30 for the KA-DCF-03 demonstration; not a real market quote."
+        },
+        "dates": {
+          "statement_date": "2025-03-31",
+          "valuation_date": "2025-03-31",
+          "market_data_date": "2025-04-30",
+          "convention": "valuation date = last fiscal year-end (D-07)",
+          "statement_fiscal_year": 2025
+        }
+      },
+      "scenario": {
+        "settings": {
+          "market_data_date": "2025-04-30",
+          "share_price": 20,
+          "debt_value_basis": "book",
+          "include_leases_in_debt": true,
+          "market_source_id": null,
+          "market_rationale": "Synthetic share price of 20.00 on 2025-04-30 for the KA-DCF-03 demonstration; not a real market quote."
+        },
+        "assumptions": [
+          {
+            "key": "capex_pct_revenue",
+            "year_index": 1,
+            "value": 0.05,
+            "basis": "assumed",
+            "source_id": null,
+            "rationale": "Synthetic KA-DCF-03 case: CapEx 5.0% falling to 4.5% of revenue, still above D&A in the final year."
+          },
+          {
+            "key": "capex_pct_revenue",
+            "year_index": 2,
+            "value": 0.05,
+            "basis": "assumed",
+            "source_id": null,
+            "rationale": "Synthetic KA-DCF-03 case: CapEx 5.0% falling to 4.5% of revenue, still above D&A in the final year."
+          },
+          {
+            "key": "capex_pct_revenue",
+            "year_index": 3,
+            "value": 0.045,
+            "basis": "assumed",
+            "source_id": null,
+            "rationale": "Synthetic KA-DCF-03 case: CapEx 5.0% falling to 4.5% of revenue, still above D&A in the final year."
+          },
+          {
+            "key": "capex_pct_revenue",
+            "year_index": 4,
+            "value": 0.045,
+            "basis": "assumed",
+            "source_id": null,
+            "rationale": "Synthetic KA-DCF-03 case: CapEx 5.0% falling to 4.5% of revenue, still above D&A in the final year."
+          },
+          {
+            "key": "capex_pct_revenue",
+            "year_index": 5,
+            "value": 0.045,
+            "basis": "assumed",
+            "source_id": null,
+            "rationale": "Synthetic KA-DCF-03 case: CapEx 5.0% falling to 4.5% of revenue, still above D&A in the final year."
+          },
+          {
+            "key": "da_pct_revenue",
+            "year_index": 1,
+            "value": 0.04,
+            "basis": "assumed",
+            "source_id": null,
+            "rationale": "Synthetic KA-DCF-03 case: D&A held at the historical 4.0% of revenue."
+          },
+          {
+            "key": "da_pct_revenue",
+            "year_index": 2,
+            "value": 0.04,
+            "basis": "assumed",
+            "source_id": null,
+            "rationale": "Synthetic KA-DCF-03 case: D&A held at the historical 4.0% of revenue."
+          },
+          {
+            "key": "da_pct_revenue",
+            "year_index": 3,
+            "value": 0.04,
+            "basis": "assumed",
+            "source_id": null,
+            "rationale": "Synthetic KA-DCF-03 case: D&A held at the historical 4.0% of revenue."
+          },
+          {
+            "key": "da_pct_revenue",
+            "year_index": 4,
+            "value": 0.04,
+            "basis": "assumed",
+            "source_id": null,
+            "rationale": "Synthetic KA-DCF-03 case: D&A held at the historical 4.0% of revenue."
+          },
+          {
+            "key": "da_pct_revenue",
+            "year_index": 5,
+            "value": 0.04,
+            "basis": "assumed",
+            "source_id": null,
+            "rationale": "Synthetic KA-DCF-03 case: D&A held at the historical 4.0% of revenue."
+          },
+          {
+            "key": "ebitda_margin",
+            "year_index": 1,
+            "value": 0.18,
+            "basis": "assumed",
+            "source_id": null,
+            "rationale": "Synthetic KA-DCF-03 case: margin steps up 50bp a year from 18% to 20%, in line with the 19-20% achieved historically."
+          },
+          {
+            "key": "ebitda_margin",
+            "year_index": 2,
+            "value": 0.185,
+            "basis": "assumed",
+            "source_id": null,
+            "rationale": "Synthetic KA-DCF-03 case: margin steps up 50bp a year from 18% to 20%, in line with the 19-20% achieved historically."
+          },
+          {
+            "key": "ebitda_margin",
+            "year_index": 3,
+            "value": 0.19,
+            "basis": "assumed",
+            "source_id": null,
+            "rationale": "Synthetic KA-DCF-03 case: margin steps up 50bp a year from 18% to 20%, in line with the 19-20% achieved historically."
+          },
+          {
+            "key": "ebitda_margin",
+            "year_index": 4,
+            "value": 0.195,
+            "basis": "assumed",
+            "source_id": null,
+            "rationale": "Synthetic KA-DCF-03 case: margin steps up 50bp a year from 18% to 20%, in line with the 19-20% achieved historically."
+          },
+          {
+            "key": "ebitda_margin",
+            "year_index": 5,
+            "value": 0.2,
+            "basis": "assumed",
+            "source_id": null,
+            "rationale": "Synthetic KA-DCF-03 case: margin steps up 50bp a year from 18% to 20%, in line with the 19-20% achieved historically."
+          },
+          {
+            "key": "equity_risk_premium",
+            "year_index": null,
+            "value": 0.055,
+            "basis": "assumed",
+            "source_id": null,
+            "rationale": "Synthetic KA-DCF-03 case: 5.5% equity risk premium."
+          },
+          {
+            "key": "levered_beta",
+            "year_index": null,
+            "value": 1.1,
+            "basis": "assumed",
+            "source_id": null,
+            "rationale": "Synthetic KA-DCF-03 case: levered beta of 1.1."
+          },
+          {
+            "key": "nwc_pct_revenue",
+            "year_index": 1,
+            "value": 0.15,
+            "basis": "assumed",
+            "source_id": null,
+            "rationale": "Synthetic KA-DCF-03 case: operating NWC held at the historical 15% of revenue."
+          },
+          {
+            "key": "nwc_pct_revenue",
+            "year_index": 2,
+            "value": 0.15,
+            "basis": "assumed",
+            "source_id": null,
+            "rationale": "Synthetic KA-DCF-03 case: operating NWC held at the historical 15% of revenue."
+          },
+          {
+            "key": "nwc_pct_revenue",
+            "year_index": 3,
+            "value": 0.15,
+            "basis": "assumed",
+            "source_id": null,
+            "rationale": "Synthetic KA-DCF-03 case: operating NWC held at the historical 15% of revenue."
+          },
+          {
+            "key": "nwc_pct_revenue",
+            "year_index": 4,
+            "value": 0.15,
+            "basis": "assumed",
+            "source_id": null,
+            "rationale": "Synthetic KA-DCF-03 case: operating NWC held at the historical 15% of revenue."
+          },
+          {
+            "key": "nwc_pct_revenue",
+            "year_index": 5,
+            "value": 0.15,
+            "basis": "assumed",
+            "source_id": null,
+            "rationale": "Synthetic KA-DCF-03 case: operating NWC held at the historical 15% of revenue."
+          },
+          {
+            "key": "pre_tax_cost_of_debt",
+            "year_index": null,
+            "value": 0.07,
+            "basis": "assumed",
+            "source_id": null,
+            "rationale": "Synthetic KA-DCF-03 case: 7% pre-tax cost of debt."
+          },
+          {
+            "key": "revenue_growth",
+            "year_index": 1,
+            "value": 0.08,
+            "basis": "assumed",
+            "source_id": null,
+            "rationale": "Synthetic KA-DCF-03 case: growth decelerates from 8% to 4% as the business matures (history: 12.5% and 11.1%)."
+          },
+          {
+            "key": "revenue_growth",
+            "year_index": 2,
+            "value": 0.07,
+            "basis": "assumed",
+            "source_id": null,
+            "rationale": "Synthetic KA-DCF-03 case: growth decelerates from 8% to 4% as the business matures (history: 12.5% and 11.1%)."
+          },
+          {
+            "key": "revenue_growth",
+            "year_index": 3,
+            "value": 0.06,
+            "basis": "assumed",
+            "source_id": null,
+            "rationale": "Synthetic KA-DCF-03 case: growth decelerates from 8% to 4% as the business matures (history: 12.5% and 11.1%)."
+          },
+          {
+            "key": "revenue_growth",
+            "year_index": 4,
+            "value": 0.05,
+            "basis": "assumed",
+            "source_id": null,
+            "rationale": "Synthetic KA-DCF-03 case: growth decelerates from 8% to 4% as the business matures (history: 12.5% and 11.1%)."
+          },
+          {
+            "key": "revenue_growth",
+            "year_index": 5,
+            "value": 0.04,
+            "basis": "assumed",
+            "source_id": null,
+            "rationale": "Synthetic KA-DCF-03 case: growth decelerates from 8% to 4% as the business matures (history: 12.5% and 11.1%)."
+          },
+          {
+            "key": "risk_free_rate",
+            "year_index": null,
+            "value": 0.045,
+            "basis": "assumed",
+            "source_id": null,
+            "rationale": "Synthetic KA-DCF-03 case: 4.5% risk-free rate for the cash-flow currency."
+          },
+          {
+            "key": "size_premium",
+            "year_index": null,
+            "value": 0,
+            "basis": "assumed",
+            "source_id": null,
+            "rationale": "Synthetic KA-DCF-03 case: no size premium applied."
+          },
+          {
+            "key": "tax_rate",
+            "year_index": null,
+            "value": 0.25,
+            "basis": "assumed",
+            "source_id": null,
+            "rationale": "Synthetic KA-DCF-03 case: normalised 25% tax rate (D-05)."
+          },
+          {
+            "key": "terminal_growth",
+            "year_index": null,
+            "value": 0.025,
+            "basis": "assumed",
+            "source_id": null,
+            "rationale": "Synthetic KA-DCF-03 case: 2.5% long-run nominal growth, below the 4.5% risk-free rate."
+          }
+        ]
+      }
+    }
+  }
+}

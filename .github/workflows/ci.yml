@@ -26,3 +26,56 @@ jobs:
       - run: mypy
       - run: python scripts/export_openapi.py --check
       - run: pytest --cov --cov-report=term-missing
+
+  frontend:
+    name: frontend (Node 22)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci
+      - run: npm run check:api
+      - run: npm run lint
+      - run: npm run format:check
+      - run: npm run typecheck
+      - run: npm run test:coverage
+      - run: npm run build
+
+  e2e:
+    name: e2e (real backend, 1440 and 1024)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: pip install -e ".[dev]"
+        working-directory: backend
+      - run: npm ci
+        working-directory: frontend
+      - run: npx playwright install --with-deps chromium
+        working-directory: frontend
+      - run: npm run build
+        working-directory: frontend
+      - run: npm run e2e
+        working-directory: frontend
+        env:
+          PYTHON: python
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report
+          path: frontend/playwright-report
+          retention-days: 7

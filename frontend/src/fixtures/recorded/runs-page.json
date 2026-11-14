@@ -1,0 +1,47 @@
+{
+  "$recorded": {
+    "operation": {
+      "method": "get",
+      "path": "/api/v1/runs",
+      "status": 200
+    },
+    "engine_version": "0.1.0",
+    "note": "saved runs list",
+    "source": "scripts/record-fixtures.mjs against a live backend; synthetic sample data only"
+  },
+  "body": {
+    "page": 1,
+    "page_size": 25,
+    "total": 1,
+    "items": [
+      {
+        "id": 1,
+        "label": "Fixture run",
+        "created_at": "2026-11-14T13:34:29.722630+00:00",
+        "engine_version": "0.1.0",
+        "engine_compatible": true,
+        "input_hash": "sha256:37c66a5382d863399822cc79268966c803179e0fae0d36679fc0c867efcf8114",
+        "valuation_date": "2025-03-31",
+        "company": {
+          "id": 1,
+          "name": "Ardent Precision Components (SYNTHETIC)",
+          "currency": "INR",
+          "scale": "crores",
+          "is_synthetic": true
+        },
+        "project": {
+          "id": 1,
+          "name": "Ardent valuation (sample)"
+        },
+        "scenario": {
+          "id": 1,
+          "name": "Base"
+        },
+        "enterprise_value": 3558.790701488767,
+        "equity_value": 3248.790701488767,
+        "value_per_share": 31.215006617818556,
+        "warning_count": 3
+      }
+    ]
+  }
+}

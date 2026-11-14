@@ -1,0 +1,159 @@
+{
+  "$recorded": {
+    "operation": {
+      "method": "post",
+      "path": "/api/v1/runs/{run_id}/sensitivity",
+      "status": 200
+    },
+    "engine_version": "0.1.0",
+    "note": "base value per share < 0: change_abs given, change_pct NM in every cell",
+    "source": "scripts/record-fixtures.mjs against a live backend; synthetic sample data only"
+  },
+  "body": {
+    "run_id": 2,
+    "input_hash": "sha256:48d20c76b065fe81da523015a56445ae9b3c45a78e4e05d95e9623bb41e37468",
+    "engine_version": "0.1.0",
+    "basis": "derived",
+    "context": {
+      "company": {
+        "id": 2,
+        "name": "Ardent Precision Components (SYNTHETIC)",
+        "currency": "INR",
+        "scale": "crores",
+        "is_synthetic": true
+      },
+      "project": {
+        "id": 2,
+        "name": "Ardent valuation (sample)"
+      },
+      "scenario": {
+        "id": 2,
+        "name": "Base"
+      }
+    },
+    "row_variable": "wacc",
+    "col_variable": "terminal_growth",
+    "output": "value_per_share",
+    "row_values": [
+      0.0909980079681275,
+      0.0959980079681275,
+      0.10099800796812751
+    ],
+    "col_values": [
+      0.02,
+      0.025,
+      0.030000000000000002
+    ],
+    "base_row": 1,
+    "base_col": 1,
+    "base_value": -17.140686123873596,
+    "base_matches_run": true,
+    "cells": [
+      [
+        {
+          "value": -16.53719599421181,
+          "status": "ok",
+          "codes": [],
+          "change_abs": 0.6034901296617861,
+          "change_pct": {
+            "value": null,
+            "status": "not_meaningful",
+            "reason": "base value is zero or negative"
+          }
+        },
+        {
+          "value": -14.358047459045194,
+          "status": "ok",
+          "codes": [],
+          "change_abs": 2.7826386648284025,
+          "change_pct": {
+            "value": null,
+            "status": "not_meaningful",
+            "reason": "base value is zero or negative"
+          }
+        },
+        {
+          "value": -11.821649792676565,
+          "status": "ok",
+          "codes": [],
+          "change_abs": 5.319036331197031,
+          "change_pct": {
+            "value": null,
+            "status": "not_meaningful",
+            "reason": "base value is zero or negative"
+          }
+        }
+      ],
+      [
+        {
+          "value": -18.998799558549045,
+          "status": "ok",
+          "codes": [],
+          "change_abs": -1.8581134346754489,
+          "change_pct": {
+            "value": null,
+            "status": "not_meaningful",
+            "reason": "base value is zero or negative"
+          }
+        },
+        {
+          "value": -17.140686123873596,
+          "status": "ok",
+          "codes": [],
+          "change_abs": 0,
+          "change_pct": {
+            "value": null,
+            "status": "not_meaningful",
+            "reason": "base value is zero or negative"
+          }
+        },
+        {
+          "value": -15.001031853060663,
+          "status": "ok",
+          "codes": [],
+          "change_abs": 2.139654270812933,
+          "change_pct": {
+            "value": null,
+            "status": "not_meaningful",
+            "reason": "base value is zero or negative"
+          }
+        }
+      ],
+      [
+        {
+          "value": -21.154834574440105,
+          "status": "ok",
+          "codes": [],
+          "change_abs": -4.014148450566509,
+          "change_pct": {
+            "value": null,
+            "status": "not_meaningful",
+            "reason": "base value is zero or negative"
+          }
+        },
+        {
+          "value": -19.55550865653892,
+          "status": "ok",
+          "codes": [],
+          "change_abs": -2.4148225326653225,
+          "change_pct": {
+            "value": null,
+            "status": "not_meaningful",
+            "reason": "base value is zero or negative"
+          }
+        },
+        {
+          "value": -17.73091924693257,
+          "status": "ok",
+          "codes": [],
+          "change_abs": -0.5902331230589724,
+          "change_pct": {
+            "value": null,
+            "status": "not_meaningful",
+            "reason": "base value is zero or negative"
+          }
+        }
+      ]
+    ]
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "$recorded": {
+    "operation": {
+      "method": "post",
+      "path": "/api/v1/scenarios/{scenario_id}/preview",
+      "status": 422
+    },
+    "engine_version": "0.1.0",
+    "note": "draft with terminal growth 20% (>= WACC): engine refuses; nothing is written",
+    "source": "scripts/record-fixtures.mjs against a live backend; synthetic sample data only"
+  },
+  "body": {
+    "error_type": "calculation",
+    "status": 422,
+    "errors": [
+      {
+        "field": "terminal_growth",
+        "code": "TERMINAL_GROWTH_GE_WACC",
+        "severity": "error",
+        "message": "Terminal growth (20.00%) must be below WACC (9.60%); otherwise the perpetuity has no finite value."
+      }
+    ],
+    "engine_version": "0.1.0"
+  }
+}

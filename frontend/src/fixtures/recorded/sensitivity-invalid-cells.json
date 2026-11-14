@@ -1,0 +1,233 @@
+{
+  "$recorded": {
+    "operation": {
+      "method": "post",
+      "path": "/api/v1/runs/{run_id}/sensitivity",
+      "status": 200
+    },
+    "engine_version": "0.1.0",
+    "note": "wide g step so some cells have g >= WACC (invalid)",
+    "source": "scripts/record-fixtures.mjs against a live backend; synthetic sample data only"
+  },
+  "body": {
+    "run_id": 1,
+    "input_hash": "sha256:37c66a5382d863399822cc79268966c803179e0fae0d36679fc0c867efcf8114",
+    "engine_version": "0.1.0",
+    "basis": "derived",
+    "context": {
+      "company": {
+        "id": 1,
+        "name": "Ardent Precision Components (SYNTHETIC)",
+        "currency": "INR",
+        "scale": "crores",
+        "is_synthetic": true
+      },
+      "project": {
+        "id": 1,
+        "name": "Ardent valuation (sample)"
+      },
+      "scenario": {
+        "id": 1,
+        "name": "Base"
+      }
+    },
+    "row_variable": "wacc",
+    "col_variable": "terminal_growth",
+    "output": "value_per_share",
+    "row_values": [
+      0.0909980079681275,
+      0.0959980079681275,
+      0.10099800796812751
+    ],
+    "col_values": [
+      -0.07500000000000001,
+      -0.025,
+      0.025,
+      0.07500000000000001,
+      0.125
+    ],
+    "base_row": 1,
+    "base_col": 2,
+    "base_value": 31.215006617818556,
+    "base_matches_run": true,
+    "cells": [
+      [
+        {
+          "value": 16.10505294793193,
+          "status": "ok",
+          "codes": [],
+          "change_abs": -15.109953669886625,
+          "change_pct": {
+            "value": -0.4840605627570607,
+            "status": "ok",
+            "reason": null
+          }
+        },
+        {
+          "value": 21.157781015356534,
+          "status": "ok",
+          "codes": [],
+          "change_abs": -10.057225602462022,
+          "change_pct": {
+            "value": -0.32219200609494747,
+            "status": "ok",
+            "reason": null
+          }
+        },
+        {
+          "value": 33.866388741853164,
+          "status": "ok",
+          "codes": [],
+          "change_abs": 2.6513821240346083,
+          "change_pct": {
+            "value": 0.08493934204457647,
+            "status": "ok",
+            "reason": null
+          }
+        },
+        {
+          "value": 126.01368503392453,
+          "status": "ok",
+          "codes": [],
+          "change_abs": 94.79867841610597,
+          "change_pct": {
+            "value": 3.036958459652921,
+            "status": "ok",
+            "reason": null
+          }
+        },
+        {
+          "value": null,
+          "status": "invalid",
+          "codes": [
+            "TERMINAL_GROWTH_GE_WACC"
+          ],
+          "change_abs": null,
+          "change_pct": {
+            "value": null,
+            "status": "missing",
+            "reason": "cell invalid"
+          }
+        }
+      ],
+      [
+        {
+          "value": 15.477755121300916,
+          "status": "ok",
+          "codes": [],
+          "change_abs": -15.73725149651764,
+          "change_pct": {
+            "value": -0.5041565965113171,
+            "status": "ok",
+            "reason": null
+          }
+        },
+        {
+          "value": 20.094829095942302,
+          "status": "ok",
+          "codes": [],
+          "change_abs": -11.120177521876254,
+          "change_pct": {
+            "value": -0.35624459920916657,
+            "status": "ok",
+            "reason": null
+          }
+        },
+        {
+          "value": 31.215006617818556,
+          "status": "ok",
+          "codes": [],
+          "change_abs": 0,
+          "change_pct": {
+            "value": 0,
+            "status": "ok",
+            "reason": null
+          }
+        },
+        {
+          "value": 95.29343398299122,
+          "status": "ok",
+          "codes": [],
+          "change_abs": 64.07842736517266,
+          "change_pct": {
+            "value": 2.0528083863546125,
+            "status": "ok",
+            "reason": null
+          }
+        },
+        {
+          "value": null,
+          "status": "invalid",
+          "codes": [
+            "TERMINAL_GROWTH_GE_WACC"
+          ],
+          "change_abs": null,
+          "change_pct": {
+            "value": null,
+            "status": "missing",
+            "reason": "cell invalid"
+          }
+        }
+      ],
+      [
+        {
+          "value": 14.887598906503873,
+          "status": "ok",
+          "codes": [],
+          "change_abs": -16.327407711314684,
+          "change_pct": {
+            "value": -0.5230627662912126,
+            "status": "ok",
+            "reason": null
+          }
+        },
+        {
+          "value": 19.117766750086897,
+          "status": "ok",
+          "codes": [],
+          "change_abs": -12.097239867731659,
+          "change_pct": {
+            "value": -0.38754564481899406,
+            "status": "ok",
+            "reason": null
+          }
+        },
+        {
+          "value": 28.91409080839216,
+          "status": "ok",
+          "codes": [],
+          "change_abs": -2.300915809426396,
+          "change_pct": {
+            "value": -0.07371184756094068,
+            "status": "ok",
+            "reason": null
+          }
+        },
+        {
+          "value": 76.39147131654218,
+          "status": "ok",
+          "codes": [],
+          "change_abs": 45.17646469872362,
+          "change_pct": {
+            "value": 1.447267503474928,
+            "status": "ok",
+            "reason": null
+          }
+        },
+        {
+          "value": null,
+          "status": "invalid",
+          "codes": [
+            "TERMINAL_GROWTH_GE_WACC"
+          ],
+          "change_abs": null,
+          "change_pct": {
+            "value": null,
+            "status": "missing",
+            "reason": "cell invalid"
+          }
+        }
+      ]
+    ]
+  }
+}

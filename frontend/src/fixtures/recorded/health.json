@@ -1,0 +1,16 @@
+{
+  "$recorded": {
+    "operation": {
+      "method": "get",
+      "path": "/api/v1/health",
+      "status": 200
+    },
+    "engine_version": "0.1.0",
+    "note": "service status",
+    "source": "scripts/record-fixtures.mjs against a live backend; synthetic sample data only"
+  },
+  "body": {
+    "status": "ok",
+    "engine_version": "0.1.0"
+  }
+}
